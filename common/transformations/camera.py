@@ -225,3 +225,8 @@ def yuv_crop(frame, output_size, center=None):
   rgb_crop = rgb[center[0] - output_size[1]/2: center[0] + output_size[1]/2,
                  center[1] - output_size[0]/2: center[1] + output_size[0]/2]
   return cv2.cvtColor(rgb_crop, cv2.COLOR_RGB2YUV_I420)
+
+def get_view_frame_from_calib_frame(roll, pitch, yaw, height):
+  device_from_calib= orient.rot_from_euler([roll, pitch, yaw])
+  view_from_calib = view_frame_from_device_frame.dot(device_from_calib)
+  return np.hstack((view_from_calib, [[0], [height], [0]]))
