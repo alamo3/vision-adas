@@ -1,4 +1,4 @@
-#Vision Radar
+# Vision Radar
 
 This project attempts to calculate lane lines and information about the lead car based on two sequential input
 camera frames. Special thanks to [comma.ai](https://comma.ai) for making their [openpilot](https://github.com/commaai/openpilot)
@@ -6,9 +6,9 @@ model open-source for us all to use. Also special thanks to [@littlemountainman]
 and [@nikebless](https://github.com/nikebless) for a lot of the project code [modeld](https://github.com/littlemountainman/modeld)
 , [openpilot-pipeline](https://github.com/nikebless/openpilot-pipeline).
 
-##Instructions to run
+## Instructions to run
 
-###Run the following commands:
+### Run the following commands:
 - Make sure to have python, git and pip3 installed beforehand.
 - Make sure that you have a version older than python 3.10 installed since onnxruntime is not supported with the newest version of python. Python 3.9 is a good option and do not forget to change the base interpreter to this python version on your IDE of choice.
 
