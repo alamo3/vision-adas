@@ -30,6 +30,7 @@ After running the program, you should get a frame pop up that consists of a vide
 ### Testing with other video files:
 
 - The program can be tested on any dashcam video of a car driving and the program should output the video with lane lines and the lead car distance to a reasonable approximation depending on the quality of the video. Make sure to resize the video to 1168 x 874 before testing it (you can use the website https://ezgif.com/resize-video to do this or any video editing software).
+- To convert a youtube video into an mp4 you can use this website: https://onlinevideoconverter.pro/en51/youtube-downloader-mp4
 - To test another video file, paste the path of the mp4 file on line 29 in main.py: cap = cv2.VideoCapture('File path goes here')
 
 <img width="582" alt="Screen Shot 2022-05-11 at 2 05 08 PM" src="https://user-images.githubusercontent.com/82610468/167916827-88dbf084-be49-4218-a7b4-9b10d9aaab74.png">
