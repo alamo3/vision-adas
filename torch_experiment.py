@@ -13,14 +13,7 @@ from common.transformations.model import medmodel_intrinsics
 using_wide = False
 
 providers = [
-    ('CUDAExecutionProvider',{
-        'device_id': 0,
-        'arena_extend_strategy': 'kNextPowerOfTwo',
-        'gpu_mem_limit': 2 * 1024 * 1024 * 1024,
-        'cudnn_conv_algo_search': 'EXHAUSTIVE',
-        'do_copy_in_default_stream': True,
-    })
-    #'CPUExecutionProvider',
+    'CPUExecutionProvider',
 ]
 
 ml_session = ort.InferenceSession('supercombo.onnx', providers = providers)
@@ -28,7 +21,7 @@ ml_session = ort.InferenceSession('supercombo.onnx', providers = providers)
 state = np.zeros((1, 512)).astype(np.float32)
 desire = np.zeros((1, 8)).astype(np.float32)
 
-cap = cv2.VideoCapture('test.hevc')
+cap = cv2.VideoCapture('test_monkey.hevc')
 
 total_dlead = 0
 frame_count = 0
