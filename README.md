@@ -9,12 +9,20 @@ and [@nikebless](https://github.com/nikebless) for a lot of the project code [mo
 ##Instructions to run
 
 ###Run the following commands:
-Make sure to have python and pip3 installed beforehand.
+- Make sure to have python, git and pip3 installed beforehand.
+- Make sure that you have a version older than python 3.10 installed since onnxruntime is not supported with the newest version of python. Python 3.9 is a good option and do not forget to change the base interpreter to this python version on your IDE of choice.
+
+If you are using pycharm as your IDE, you can simply click VCS and then Get From Version Control. Then paste the link of this github page you should have all the necessary files in your directory to run the program.
 
 Install the required packages:
 - pip3 install onnxruntime
 - pip3 install numpy
 - pip3 install opencv-python
+- pip3 install h5py
 
 Run main.py:
 - python3 main.py
+
+After running the program, you should get a frame pop up that consists of a video of a car driving with lane lines and the lead car distance approximations included.
+
+<img width="585" alt="Screen Shot 2022-05-11 at 11 20 34 AM" src="https://user-images.githubusercontent.com/82610468/167887132-8623061d-2b75-417a-8965-af45a6e217fb.png">
