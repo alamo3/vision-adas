@@ -17,7 +17,7 @@ providers = [
 ]
 
 # We import our DNN model using onnx runtime and run it on the cpu
-ml_session = ort.InferenceSession('supercombo.onnx', providers=providers)
+ml_session = ort.InferenceSession('models/supercombo.onnx', providers=providers)
 
 # Recurrent state vector that the model uses for temporal context
 state = np.zeros((1, 512)).astype(np.float32)
@@ -26,7 +26,7 @@ state = np.zeros((1, 512)).astype(np.float32)
 desire = np.zeros((1, 8)).astype(np.float32)
 
 # open up our test file
-cap = cv2.VideoCapture('test_monkey.hevc')
+cap = cv2.VideoCapture('test_highway.hevc')
 
 # average out lead information
 total_dlead = 0
