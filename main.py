@@ -1,13 +1,13 @@
 import time
 from datetime import datetime
 from model.runnner import VisionModel
-from research.lane_change import lane_change_algo
+import research.lane_change as lc
 
 import cv2
 import math
 
 # open up our test file
-cap = cv2.VideoCapture('test_video/test_monkey.hevc')
+cap = cv2.VideoCapture('test_video/test_highway.hevc')
 
 out_traffic = open('traffic_output.txt', "a+")
 
@@ -32,7 +32,7 @@ def res_frame(frame):
         if frame1_shape[0] >= 874 and frame1_shape[1] >= 1168:
 
             crop_vertical = (frame1_shape[0] - 874) // 2
-            crop_horizontal = (frame1_shape[1] - 1168) // 2
+            crop_horizontal = (frame1_shape[1] - 1164) // 2
 
             return frame[crop_vertical:frame1_shape[0] - crop_vertical,
                    crop_horizontal:frame1_shape[1] - crop_horizontal]
@@ -61,12 +61,15 @@ def get_frames():
 
 
 def process_model(frame1, frame2):
+
+    global field_experiment
+
     lead_x, lead_y, lead_d, pose_speed = vision_model.run_model(frame1, frame2)
 
     log_traffic_info(lead_x, lead_y, lead_d, pose_speed)
 
     if field_experiment:
-        lane_change_algo(b_dist=lead_d, speed=pose_speed)
+        lc.lane_change_algo(b_dist=lead_d, speed=pose_speed)
 
 
 if __name__ == "__main__":

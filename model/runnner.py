@@ -135,7 +135,7 @@ class VisionModel:
 
     # Some fancy math to show stuff on the image
     def visualize(self, lead_d, lead_x, lead_y, frame, lanelines, road_edges, best_path):
-        rpy_calib = [0, 0, 0]
+        rpy_calib = [math.radians(-2), math.radians(0.2), 0]
         plot_img_height, plot_img_width = 874, 1168
 
         calibration_pred = Calibration(rpy_calib, plot_img_width=plot_img_width, plot_img_height=plot_img_height)

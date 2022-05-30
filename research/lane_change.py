@@ -3,12 +3,16 @@ from playsound import playsound
 import geopy.distance as gd
 from gps import *
 from main import out_traffic
+from main import field_experiment
 gtim = 96  # green time (with 120 sec cycle)
 tcyc = 120  # cycle length is 120 sec
 tdwl = 30  # bus dwelling time
 dbus = 20  # distance between bus station and the signal
 
-gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
+gpsd = None
+
+if field_experiment:
+    gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
 
 
 def lane_change_algo(b_dist, speed):

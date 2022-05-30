@@ -30,6 +30,13 @@ X_IDXs = [
         108., 117.1875, 126.75, 136.6875, 147., 157.6875,
         168.75, 180.1875, 192.]
 
+_BB_SCALE = W / 640.
+
+_BB_TO_FULL_FRAME = np.asarray([
+      [_BB_SCALE, 0., 0.],
+      [0., _BB_SCALE, 0.],
+      [0., 0., 1.]])
+
 
 def printf(*args, **kwargs):
     print(flush=True, *args, **kwargs)
