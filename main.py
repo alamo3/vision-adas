@@ -26,7 +26,7 @@ state = np.zeros((1, 512)).astype(np.float32)
 desire = np.zeros((1, 8)).astype(np.float32)
 
 # open up our test file
-cap = cv2.VideoCapture('test_highway.hevc')
+cap = cv2.VideoCapture(0)
 
 # average out lead information
 total_dlead = 0
@@ -159,6 +159,23 @@ def softmax(x):
     return x
 
 
+def res_frame(frame):
+    frame1_shape = frame.shape
+
+    if frame1_shape[0] != 874 and frame1_shape[1] != 1168:
+        if frame1_shape[0] >= 874 and frame1_shape[1] >= 1168:
+
+            crop_vertical = (frame1_shape[0] - 874) // 2
+            crop_horizontal = (frame1_shape[1] - 1168) // 2
+
+
+
+            return frame[crop_vertical:frame1_shape[0] - crop_vertical, crop_horizontal:frame1_shape[1] - crop_horizontal]
+        else:
+            raise Exception("This image source cannot be used for model!")
+
+    return frame
+
 if __name__ == "__main__":
 
     for input in ml_session.get_inputs():
@@ -168,6 +185,9 @@ if __name__ == "__main__":
     for output in ml_session.get_outputs():
         print(output.name + ' ' + output.type)
 
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+
     # Run the pipelines as long as we have data
     while True:
         ret1, frame1 = cap.read()
@@ -175,5 +195,8 @@ if __name__ == "__main__":
 
         if not (ret1 or ret2):
             break
+
+        frame1 = res_frame(frame1)
+        frame2 = res_frame(frame2)
 
         run_pipeline(frame1, frame2)
