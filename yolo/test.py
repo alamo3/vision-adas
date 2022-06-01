@@ -92,10 +92,7 @@ def draw_bbox(image, bboxes, classes=None, show_label=True):
         if index == num_boxes[0]:
             break
 
-
-
     estimated_depths = depth_estimator.predict_depth(out_boxes_image)
-    print(np.amax(estimated_depths))
 
     for i in range(num_boxes[0]):
 
@@ -118,8 +115,6 @@ def draw_bbox(image, bboxes, classes=None, show_label=True):
         bbox_thick = int(0.6 * (image_h + image_w) / 600)
         c1, c2 = (int(coor[1]), int(coor[0])), (int(coor[3]), int(coor[2]))
         cv2.rectangle(image, c1, c2, bbox_color, bbox_thick)
-
-
 
         if show_label:
             bbox_mess = '%s: %.2f' % (classes[class_ind], estimated_depths[i])
