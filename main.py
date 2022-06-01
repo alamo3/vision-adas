@@ -7,7 +7,7 @@ import cv2
 import math
 
 # open up our test file
-cap = cv2.VideoCapture('test_video/test_highway.hevc')
+cap = cv2.VideoCapture('test_video/test.hevc')
 
 out_traffic = open('traffic_output.txt', "a+")
 

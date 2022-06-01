@@ -22,7 +22,7 @@ class VisionModel:
         self.using_wide = using_wide
         self.show_vis = show_vis
 
-        self.ml_session = ort.InferenceSession('models/supercombo.onnx',
+        self.ml_session = ort.InferenceSession('models_pre/supercombo.onnx',
                                                providers=providers)
 
         print('Loaded model with following inputs:')
