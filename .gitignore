@@ -3,3 +3,4 @@
 /.idea
 *.pyc
 traffic_output.txt
+*.pt
