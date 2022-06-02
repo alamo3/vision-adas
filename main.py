@@ -69,7 +69,7 @@ def process_model(frame1, frame2):
     log_traffic_info(lead_x, lead_y, lead_d, pose_speed)
 
     if field_experiment:
-        lc.lane_change_algo(b_dist=lead_d, speed=pose_speed)
+        lc.lane_change_algo(b_dist=lead_d)
 
 
 if __name__ == "__main__":
