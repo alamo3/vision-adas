@@ -1,9 +1,13 @@
+import threading
 from datetime import datetime
 from playsound import playsound
 import geopy.distance as gd
-from gps import *
 from main import out_traffic
 from main import field_experiment
+from gps.gps import GPSReceiver
+import os
+
+
 gtim = 96  # green time (with 120 sec cycle)
 tcyc = 120  # cycle length is 120 sec
 tdwl = 30  # bus dwelling time
@@ -12,20 +16,20 @@ dbus = 20  # distance between bus station and the signal
 gpsd = None
 
 if field_experiment:
-    gpsd = gps(mode=WATCH_ENABLE|WATCH_NEWSTYLE)
+    gps = GPSReceiver()
+    gps.connect()
 
 
-def lane_change_algo(b_dist, speed):
-    nx = gpsd.next()
-    if nx['class'] == 'TPV':
-        lat = getattr(nx, 'lat', "Unknown")
-        lon = getattr(nx, 'lon', "Unknown")
-        lane_change_algo_lat_lon(b_dist, speed, lat, lon)
+def lane_change_algo(b_dist):
+    gps_dict = gps.get_data_frame()
+    print(gps_dict)
+    if gps_dict is not None:
+        lane_change_algo_lat_lon(b_dist, gps_dict['speed'], gps_dict['lat'], gps_dict['lon'])
 
 
 def lane_change_algo_lat_lon(b_dist, speed, lat, lon):
     coor1 = (lat, lon)
-    coor0 = (-79.930346333, 43.261875833)  # ---------------signal coordination, to be modified ---------------#
+    coor0 = (43.261875833, -79.930346333)  # ---------------signal coordination, to be modified ---------------#
     s_dist = gd.distance(coor0, coor1).km * 1000
     s_vel = speed
 
@@ -53,12 +57,13 @@ def lane_change_algo_lat_lon(b_dist, speed, lat, lon):
             timc1 = tmp0 - tmp1 + tcyc
 
         if timc0 + 4.0 < timc1 and tcur % 5 == 0:
-            notify_driver()  # play lane changing instruction
+            sound_thread = threading.Thread(target=notify_driver)
+            sound_thread.start()  # play lane changing instruction
 
             info = "Lane Changing Instruction is Generated" + "\n"
             out_traffic.write(info)
 
 
-
 def notify_driver():
-    playsound('LCAudio.mp3')
+    path = os.path.dirname(__file__)
+    playsound(path+'\LCAudio.mp3')

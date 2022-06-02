@@ -99,7 +99,7 @@ class VisionModel:
 
         pose_speed = math.sqrt(pose_speed_x ** 2 + pose_speed_y ** 2 + pose_speed_z ** 2)
 
-        print(pose_speed * 3.6)
+        #print(pose_speed * 3.6)
 
         lead_d = math.sqrt(lead_x ** 2 + lead_y ** 2)
         lead_d = lead_d.__round__(2)
