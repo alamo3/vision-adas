@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 from model.runnner import VisionModel
 import research.lane_change as lc
-
+import atexit
 import cv2
 import math
 
@@ -14,6 +14,8 @@ out_traffic = open('traffic_output.txt', "a+")
 vision_model = VisionModel(using_wide=False, show_vis=True)
 
 field_experiment = True
+
+vis_frames = []
 
 
 def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
@@ -64,20 +66,38 @@ def process_model(frame1, frame2):
 
     global field_experiment
 
-    lead_x, lead_y, lead_d, pose_speed = vision_model.run_model(frame1, frame2)
+    lead_x, lead_y, lead_d, pose_speed, vis_image = vision_model.run_model(frame1, frame2)
 
     log_traffic_info(lead_x, lead_y, lead_d, pose_speed)
+
+    vis_frames.append(vis_image)
 
     if field_experiment:
         lc.lane_change_algo(b_dist=lead_d)
 
 
+def save_video():
+    if len(vis_frames) > 0:
+
+        print('Saving video file before exit!')
+        w, h = 1164, 874
+        fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+        writer = cv2.VideoWriter('latest_video.mp4', fourcc, 20, (w, h))
+
+        for frame in vis_frames:
+            writer.write(frame)
+
+        writer.release()
+        print('Video file saved!')
+
 if __name__ == "__main__":
 
     setup_image_stream()
 
-    # Run the pipelines as long as we have data
-    while True:
-        frame1, frame2 = get_frames()
-
-        process_model(frame1, frame2)
+    try:
+        # Run the pipelines as long as we have data
+        while True:
+            frame1, frame2 = get_frames()
+            process_model(frame1, frame2)
+    except:
+        save_video()

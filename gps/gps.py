@@ -1,5 +1,6 @@
 import threading
 import copy
+import atexit
 
 import serial
 from serial.tools import list_ports
@@ -28,10 +29,16 @@ class GPSReceiver:
 
         self.latest_df = None
         self.df_lock = threading.Lock()
-        self.gps_thread = threading.Thread(target=self.gps_serial_parser)
+        self.gps_thread = threading.Thread(target=self.gps_serial_parser, daemon=True)
+        self.exit_thread = False
 
         self.connected_port = None
         self.gps_com = None
+
+        atexit.register(self.terminate_gps)
+
+    def terminate_gps(self):
+        self.exit_thread = True
 
     def connect(self):
         port = find_com_port_gps()
@@ -72,8 +79,9 @@ class GPSReceiver:
 
     def gps_serial_parser(self):
 
-        while True:
+        while not self.exit_thread:
             try:
+                print('running')
                 gps_data = self.get_valid_serial_data()
 
                 lat_ddmm = gps_data[3]

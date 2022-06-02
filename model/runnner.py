@@ -113,8 +113,11 @@ class VisionModel:
         self.frame_count = self.frame_count + 1
 
         # Visualize the model output onto the image
+
+        vis_image = None
+
         if self.show_vis:
-            self.visualize(lead_d, lead_x, lead_y, orig_frame, lane_lines, road_edges, best_path)
+            vis_image = self.visualize(lead_d, lead_x, lead_y, orig_frame, lane_lines, road_edges, best_path)
 
         # print(pred_onnx[0][0][5755], pred_onnx[0][0][5756], sigmoid(pred_onnx[0][0][5857]))
 
@@ -131,7 +134,7 @@ class VisionModel:
         # Save state recurrent vector for GRU in the next run
         self.state = pred_onnx[0][:, -512:]
 
-        return lead_x, lead_y, lead_d, pose_speed
+        return lead_x, lead_y, lead_d, pose_speed, vis_image
 
     # Some fancy math to show stuff on the image
     def visualize(self, lead_d, lead_x, lead_y, frame, lanelines, road_edges, best_path):
@@ -159,3 +162,5 @@ class VisionModel:
                     (255, 0, 0), 1)
 
         cv2.imshow('frame', vis_image)
+
+        return vis_image
