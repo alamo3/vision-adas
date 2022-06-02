@@ -13,7 +13,7 @@ out_traffic = open('traffic_output.txt', "a+")
 
 vision_model = VisionModel(using_wide=False, show_vis=True)
 
-field_experiment = False
+field_experiment = True
 
 
 def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
