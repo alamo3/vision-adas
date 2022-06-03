@@ -7,15 +7,17 @@ import cv2
 import math
 
 # open up our test file
-cap = cv2.VideoCapture('test_video/test.hevc')
+cap = cv2.VideoCapture('test_video/test_new.hevc')
 
 out_traffic = open('traffic_output.txt', "a+")
 
 vision_model = VisionModel(using_wide=False, show_vis=True)
 
-field_experiment = True
+field_experiment = False
 
 vis_frames = []
+
+cam_frames = []
 
 
 def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
@@ -25,6 +27,10 @@ def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
            str(lead_y) + ", Distance_t: " + str(lead_d) + " m " + ", Vehicle Speed: " + str(veh_speed * 3.6) + "\n"
 
     out_traffic.write(info)
+
+
+def res_frame_2(frame):
+    return cv2.resize(frame, (1164, 874), interpolation=cv2.INTER_AREA)
 
 
 def res_frame(frame):
@@ -51,19 +57,22 @@ def setup_image_stream():
 
 def get_frames():
     ret1, frame_1 = cap.read()
+    # time.sleep(0.025)
     ret2, frame_2 = cap.read()
 
     if not (ret1 or ret2):
         raise Exception("Error reading from image source")
 
-    frame_1 = res_frame(frame_1)
-    frame_2 = res_frame(frame_2)
+    frame_1 = res_frame_2(frame_1)
+    frame_2 = res_frame_2(frame_2)
+
+    cam_frames.append(frame_1)
+    cam_frames.append(frame_2)
 
     return frame_1, frame_2
 
 
 def process_model(frame1, frame2):
-
     global field_experiment
 
     lead_x, lead_y, lead_d, pose_speed, vis_image = vision_model.run_model(frame1, frame2)
@@ -79,16 +88,27 @@ def process_model(frame1, frame2):
 def save_video():
     if len(vis_frames) > 0:
 
-        print('Saving video file before exit!')
+        print('Saving video files before exit!')
         w, h = 1164, 874
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-        writer = cv2.VideoWriter('latest_video.mp4', fourcc, 20, (w, h))
+        writer = cv2.VideoWriter('latest_video_processed.mp4', fourcc, 20, (w, h))
 
         for frame in vis_frames:
             writer.write(frame)
 
         writer.release()
-        print('Video file saved!')
+
+    if len(cam_frames) > 0:
+        fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+        writer = cv2.VideoWriter('latest_video_raw.mp4', fourcc, 20, (1164, 874))
+
+        for frame in cam_frames:
+            writer.write(frame)
+
+        writer.release()
+
+        print('Video files saved!')
+
 
 if __name__ == "__main__":
 

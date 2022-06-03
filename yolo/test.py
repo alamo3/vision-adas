@@ -18,7 +18,7 @@ INPUT_SIZE = 416
 saved_model_loaded = tf.saved_model.load('./yolov4-416', tags=[tag_constants.SERVING])
 infer = saved_model_loaded.signatures['serving_default']
 
-video = cv2.VideoCapture('../test_video/test.hevc')
+video = cv2.VideoCapture('../test_video/test_new.hevc')
 
 depth_estimator = DepthEstimator()
 
