@@ -1,5 +1,9 @@
+import sys
 import time
 from datetime import datetime
+
+import numpy as np
+
 from model.runnner import VisionModel
 import research.lane_change as lc
 import atexit
@@ -7,7 +11,7 @@ import cv2
 import math
 
 # open up our test file
-cap = cv2.VideoCapture('test_video/test_new.hevc')
+cap = cv2.VideoCapture('test_video/test_creditview.mp4')
 
 out_traffic = open('traffic_output.txt', "a+")
 
@@ -18,6 +22,10 @@ field_experiment = False
 vis_frames = []
 
 cam_frames = []
+
+ts = np.array([[1.42070485, 0.0, -30.16740088],
+                  [0.0, 1.42070485, 91.030837],
+                  [0.0, 0.0, 1.0]])
 
 
 def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
@@ -30,7 +38,11 @@ def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
 
 
 def res_frame_2(frame):
-    return cv2.resize(frame, (1164, 874), interpolation=cv2.INTER_AREA)
+    return cv2.resize(frame, (1164, 874), interpolation=cv2.INTER_NEAREST)
+
+
+def res_frame_3(frame):
+    return cv2.warpPerspective(frame, ts, (1164, 874), flags=cv2.INTER_LINEAR)
 
 
 def res_frame(frame):
@@ -110,14 +122,15 @@ def save_video():
         print('Video files saved!')
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" or __name__ == "main":
 
-    setup_image_stream()
+    #setup_image_stream()
 
     try:
         # Run the pipelines as long as we have data
         while True:
             frame1, frame2 = get_frames()
             process_model(frame1, frame2)
-    except:
+    except BaseException as e:
+        print('An exception occurred: {}'.format(e))
         save_video()
