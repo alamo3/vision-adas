@@ -44,7 +44,7 @@ class GPSReceiver:
         port = find_com_port_gps()
 
         assert port is not None
-        self.gps_com = serial.Serial(port=port.name, baudrate=9600)
+        self.gps_com = serial.Serial(port=port.device, baudrate=9600)
         self.connected_port = port.name
         self.connected = True
 
