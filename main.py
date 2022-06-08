@@ -11,7 +11,7 @@ import cv2
 import math
 
 # open up our test file
-cap = cv2.VideoCapture('test_video/test_creditview.mp4')
+cap = cv2.VideoCapture(0)
 
 out_traffic = open('traffic_output.txt', "a+")
 
@@ -103,7 +103,8 @@ def save_video():
         print('Saving video files before exit!')
         w, h = 1164, 874
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-        writer = cv2.VideoWriter('latest_video_processed.mp4', fourcc, 20, (w, h))
+        date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+        writer = cv2.VideoWriter('Videos/latest_video_processed ' + date +'.mp4', fourcc, 20, (w, h))
 
         for frame in vis_frames:
             writer.write(frame)
@@ -112,7 +113,7 @@ def save_video():
 
     if len(cam_frames) > 0:
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-        writer = cv2.VideoWriter('latest_video_raw.mp4', fourcc, 20, (1164, 874))
+        writer = cv2.VideoWriter('Videos/latest_video_raw ' + date + '.mp4', fourcc, 20, (w, h))
 
         for frame in cam_frames:
             writer.write(frame)
