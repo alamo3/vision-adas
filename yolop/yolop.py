@@ -20,7 +20,7 @@ execution_providers = [
 
 ort_session = ort.InferenceSession(onnx_path, providers=execution_providers)
 
-video_cap = cv2.VideoCapture('../test_video/test_monkey.hevc')
+video_cap = cv2.VideoCapture('../test_video/test_highway.hevc')
 
 
 def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False, labels=()):
