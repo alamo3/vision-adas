@@ -12,7 +12,7 @@ from numpy.polynomial.polynomial import polyval
 
 import matplotlib.pyplot as plt
 
-onnx_path = '../models_pre/yolop-1280-1280.onnx'
+onnx_path = '../models_pre/yolop-640-640.onnx'
 
 execution_providers = [
     'CUDAExecutionProvider'
@@ -20,7 +20,7 @@ execution_providers = [
 
 ort_session = ort.InferenceSession(onnx_path, providers=execution_providers)
 
-video_cap = cv2.VideoCapture('../test_video/test_highway.hevc')
+video_cap = cv2.VideoCapture('../test_video/test_monkey.hevc')
 
 
 def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False, labels=()):
@@ -123,7 +123,7 @@ def xywh2xyxy(x):
     return y
 
 
-def resize_unscale(img, new_shape=(1280, 1280), color=114):
+def resize_unscale(img, new_shape=(640, 640), color=114):
     shape = img.shape[:2]  # current shape [height, width]
     if isinstance(new_shape, int):
         new_shape = (new_shape, new_shape)
@@ -160,7 +160,7 @@ def infer_yolop():
     img_rgb = img_bgr[:, :, ::-1].copy()
 
     # resize & normalize
-    canvas, r, dw, dh, new_unpad_w, new_unpad_h = resize_unscale(img_rgb, (1280, 1280))
+    canvas, r, dw, dh, new_unpad_w, new_unpad_h = resize_unscale(img_rgb, (640, 640))
 
     img = canvas.copy().astype(np.float32)  # (3,640,640) RGB
     img /= 255.0
@@ -186,11 +186,6 @@ def infer_yolop():
     boxes = non_max_suppression(det_out)[0]  # [n,6] [x1,y1,x2,y2,conf,cls]
     boxes = boxes.cpu().numpy().astype(np.float32)
 
-    if boxes.shape[0] == 0:
-        # print("no bounding boxes detected.")
-        return
-
-    start = time.time()
     # scale coords to original size.
     boxes[:, 0] -= dw
     boxes[:, 1] -= dh
@@ -229,17 +224,17 @@ def infer_yolop():
     contour_fits = []
 
     for i in range(len(contour_points_x)):
-        c, stats = np.polynomial.polynomial.polyfit(contour_points_x[i], contour_points_y[i], 2, full=True)
+        c, stats = np.polynomial.polynomial.polyfit(contour_points_x[i], contour_points_y[i], 3, full=True)
         contour_fits.append((c, stats))
 
     for i in range(len(contour_fits)):
-        for j in range(np.amin(contour_points_x[i]), np.amax(contour_points_x[i]), 10):
+
+        for j in range(np.amin(contour_points_x[i]), np.amax(contour_points_x[i]), 15):
             x = j
             c = contour_fits[i][0]
             y = int(polyval(j, c))
-            #y = c[0] + c[1] * x + c[2] * x ** 2 + c[3] * x ** 3
 
-            cv2.circle(img_merge, (x, y), 2, (np.random.randint(0, 255), 0, 0), 2)
+            cv2.circle(img_merge, (x, y), 2, (200, 200, 200), 2)
 
     img_merge = cv2.resize(img_merge, (width, height), interpolation=cv2.INTER_NEAREST)
 
@@ -247,8 +242,6 @@ def infer_yolop():
         x1, y1, x2, y2, conf, label = boxes[i]
         x1, y1, x2, y2, label = int(x1), int(y1), int(x2), int(y2), int(label)
         img_merge = cv2.rectangle(img_merge, (x1, y1), (x2, y2), (255, 0, 0), 2, 2)
-
-    print(time.time() - start)
 
     return img_merge
 
