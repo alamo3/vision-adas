@@ -1,8 +1,5 @@
-import string
+from base_client import Client
 
-from communication import Client
-
-import time
 import paho.mqtt.client as paho
 from paho import mqtt
 
@@ -11,6 +8,7 @@ import os
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
+# Details for MQTT HiveMQ server
 USER_NAME = 'mcmaster'
 PASSWORD = 'McMaster123'
 SERVER_URL = 'ae7660133e3d4822897f1256213846b0.s1.eu.hivemq.cloud'
@@ -20,6 +18,11 @@ WEBSOCKET_PORT = 8884
 
 
 class MQTTClient(Client):
+    """
+    Provides base implementation for an MQTT Client. Extends Client class
+    We can connect to an MQTT server, subscribe, send and publish messages for topics
+    using this class.
+    """
 
     def __init__(self, client_id):
         Client.__init__(self, client_id)
@@ -46,14 +49,17 @@ class MQTTClient(Client):
 
     def connect(self):
 
+        # we are using SSL encryption to connect
         self.client.on_connect = self.on_connect
         self.client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
 
         self.client.username_pw_set(username=USER_NAME, password=PASSWORD)
 
+        # connect and start non-blocking loop. See Paho MQTT docs for details
         self.client.connect(SERVER_URL, SERVER_PORT)
         self.client.loop_start()
 
+        # set callback functions
         self.client.on_subscribe = self.on_subscribe
         self.client.on_message = self.on_message
         self.client.on_publish = self.on_publish

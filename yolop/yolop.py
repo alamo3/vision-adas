@@ -1,18 +1,17 @@
 import time
 
 import cv2
-import torch
-import onnxruntime as ort
 import numpy as np
+import onnxruntime as ort
+import torch
 import torchvision
-from torchvision.ops import box_iou
-from numpy.polynomial import Polynomial as P
 from numpy.polynomial.polynomial import polyval
+from torchvision.ops import box_iou
 
-import matplotlib.pyplot as plt
-
+# Model path
 onnx_path = '../models_pre/yolop-640-640.onnx'
 
+# Execution provider (Set to CUDA for now), can also be set to run on CPU
 execution_providers = [
     'CUDAExecutionProvider'
 ]
@@ -24,7 +23,7 @@ video_cap = cv2.VideoCapture('../test_video/test_highway.hevc')
 
 def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False, labels=()):
     """Performs Non-Maximum Suppression (NMS) on inference results
-
+    See: https://towardsdatascience.com/non-maximum-suppression-nms-93ce178e177c
     Returns:
          detections with shape: nx6 (x1, y1, x2, y2, conf, cls)
     """
@@ -150,8 +149,13 @@ def resize_unscale(img, new_shape=(640, 640), color=114):
 
 
 def infer_yolop():
+    """
+    Runs YOLOP model on input image from video source
+    :return: Image with model outputs visualized (numpy array)
+    """
     global ort_session
 
+    # read input image
     ret, img_bgr = video_cap.read()
     height, width, _ = img_bgr.shape
 
@@ -176,11 +180,13 @@ def infer_yolop():
 
     # inference: (1,n,6) (1,2,640,640) (1,2,640,640)
 
+    # run model on input image
     det_out, da_seg_out, ll_seg_out = ort_session.run(
         ['det_out', 'drive_area_seg', 'lane_line_seg'],
         input_feed={"images": img}
     )
 
+    # perform Non Max Suppression on detection bounding boxes
     det_out = torch.from_numpy(det_out).float()
     boxes = non_max_suppression(det_out)[0]  # [n,6] [x1,y1,x2,y2,conf,cls]
     boxes = boxes.cpu().numpy().astype(np.float32)
@@ -201,18 +207,23 @@ def infer_yolop():
 
     img_merge = canvas[dh:dh + new_unpad_h, dw:dw + new_unpad_w, :]
     img_merge = img_merge[:, :, ::-1]
-
-    contours, hierarchy = cv2.findContours(ll_seg_mask, cv2.RETR_FLOODFILL, cv2.CHAIN_APPROX_SIMPLE)
     img_merge = img_merge.astype(np.uint8)
 
+    # Find contours in lane line mask to fit curves to lane lines
+    contours, hierarchy = cv2.findContours(ll_seg_mask, cv2.RETR_FLOODFILL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Filter out contours that are probably just noise (less than 40 points)
     contours_filtered = []
     contour_points_x = []
     contour_points_y = []
+
     for i in range(len(contours)):
-        if contours[i].shape[0] > 50:
+        if contours[i].shape[0] > 40:
             contours_filtered.append(contours[i])
             points_x = []
             points_y = []
+
+            # If we are going to use this contour, extract its x and y coordinates for cubic curve fitting later
             for j in range(contours[i].shape[0]):
                 points_x.append(contours[i][j][0][0])
                 points_y.append(contours[i][j][0][1])
@@ -220,14 +231,16 @@ def infer_yolop():
             contour_points_x.append(points_x)
             contour_points_y.append(points_y)
 
+    # Now we try to fit cubic curves to the extracted lane line contour points
     contour_fits = []
 
     for i in range(len(contour_points_x)):
+        # Perform cubic polynomial fitting on x and y arrays for each valid contour
         c, stats = np.polynomial.polynomial.polyfit(contour_points_x[i], contour_points_y[i], 3, full=True)
         contour_fits.append((c, stats))
 
+    # Draw the output of the cubic function on the image.
     for i in range(len(contour_fits)):
-
         for j in range(np.amin(contour_points_x[i]), np.amax(contour_points_x[i]), 15):
             x = j
             c = contour_fits[i][0]
@@ -235,8 +248,10 @@ def infer_yolop():
 
             cv2.circle(img_merge, (x, y), 2, (200, 200, 200), 2)
 
+    # Resize image to original input size
     img_merge = cv2.resize(img_merge, (width, height), interpolation=cv2.INTER_NEAREST)
 
+    # Draw bounding boxes for car object detection.
     for i in range(boxes.shape[0]):
         x1, y1, x2, y2, conf, label = boxes[i]
         x1, y1, x2, y2, label = int(x1), int(y1), int(x2), int(y2), int(label)
@@ -249,6 +264,7 @@ if __name__ == "__main__":
 
     ort.set_default_logger_severity(4)
 
+    # Print model inputs and outputs
     outputs_info = ort_session.get_outputs()
     inputs_info = ort_session.get_inputs()
 

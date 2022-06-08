@@ -3,9 +3,9 @@ import unittest
 
 from rpi_client import RPIClient
 
+# Unit test for MQTT Communication test
 class MyTestCase(unittest.TestCase):
     def test_connection(self):
-
         rpi_client = RPIClient()
 
         rpi_client2 = RPIClient()
@@ -24,8 +24,6 @@ class MyTestCase(unittest.TestCase):
         time.sleep(3)
 
         self.assertEqual(str(rpi_client.last_message), 'b\'20\'')
-
-
 
 
 if __name__ == '__main__':

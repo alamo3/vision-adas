@@ -2,6 +2,9 @@ from mqtt_client import MQTTClient
 
 
 class RPIClient(MQTTClient):
+    """
+    This class models a Raspberry PI Client and extends from MQTTClient class
+    """
 
     num_clients = 0
 
