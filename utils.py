@@ -7,8 +7,6 @@ import os
 import cv2
 import glob
 import h5py
-import argparse
-#from tools.lib.logreader import LogReader
 
 
 PATH_TO_CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache')
@@ -46,15 +44,11 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
-def dir_path(path):
-    if os.path.isdir(path):
-        return path
-    else:
-        raise argparse.ArgumentTypeError(f"readable_dir:{path} is not a valid path")
-
-
-def get_segment_dirs(base_dir, video_names=['video.hevc', 'fcamera.hevc']):
+def get_segment_dirs(base_dir, video_names=None):
     '''Get paths to all segments.'''
+
+    if video_names is None:
+        video_names = ['video.hevc', 'fcamera.hevc']
 
     paths_to_videos = []
     for video_name in video_names:
@@ -81,9 +75,7 @@ def load_h5(seg_path):
     return plan, plan_prob, lanelines, lanelines_prob, road_edg, road_edg_std
 
 def extract_gt(plan_gt, plan_prob_gt, lanelines_gt, lanelines_prob_gt, road_edg_gt, road_edg_std_gt, best_plan_only=True):
-    
-#     print(lanelines_gt.shape)
-    
+
     # plan
     plans = plan_gt # (N, 5, 2, 33, 15)
     best_plan_idx = np.argmax(plan_prob_gt, axis=1)[0]  # (N,)
@@ -300,12 +292,6 @@ def load_frames(video_path):
 
     return yuv_frames
 
-
-def load_calibration(segment_path):
-    logs_file = os.path.join(segment_path, 'rlog.bz2')
-    lr = LogReader(logs_file)
-    liveCalibration = [m.liveCalibration for m in lr if m.which() == 'liveCalibration']  # probably not 1200, but 240
-    return liveCalibration
 
 
 def bgr_to_yuv(img_bgr):
