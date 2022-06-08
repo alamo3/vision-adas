@@ -7,11 +7,14 @@ import onnxruntime as ort
 import numpy as np
 import torchvision
 from torchvision.ops import box_iou
+from numpy.polynomial import Polynomial as P
+from numpy.polynomial.polynomial import polyval
 
+import matplotlib.pyplot as plt
 
-onnx_path = '../models_pre/yolop-640-640.onnx'
+onnx_path = '../models_pre/yolop-1280-1280.onnx'
 
-execution_providers= [
+execution_providers = [
     'CUDAExecutionProvider'
 ]
 
@@ -120,7 +123,7 @@ def xywh2xyxy(x):
     return y
 
 
-def resize_unscale(img, new_shape=(640, 640), color=114):
+def resize_unscale(img, new_shape=(1280, 1280), color=114):
     shape = img.shape[:2]  # current shape [height, width]
     if isinstance(new_shape, int):
         new_shape = (new_shape, new_shape)
@@ -150,7 +153,6 @@ def resize_unscale(img, new_shape=(640, 640), color=114):
 def infer_yolop():
     global ort_session
 
-
     ret, img_bgr = video_cap.read()
     height, width, _ = img_bgr.shape
 
@@ -158,7 +160,7 @@ def infer_yolop():
     img_rgb = img_bgr[:, :, ::-1].copy()
 
     # resize & normalize
-    canvas, r, dw, dh, new_unpad_w, new_unpad_h = resize_unscale(img_rgb, (640, 640))
+    canvas, r, dw, dh, new_unpad_w, new_unpad_h = resize_unscale(img_rgb, (1280, 1280))
 
     img = canvas.copy().astype(np.float32)  # (3,640,640) RGB
     img /= 255.0
@@ -189,7 +191,7 @@ def infer_yolop():
         return
 
     start = time.time()
-   #scale coords to original size.
+    # scale coords to original size.
     boxes[:, 0] -= dw
     boxes[:, 1] -= dh
     boxes[:, 2] -= dw
@@ -197,29 +199,50 @@ def infer_yolop():
     boxes[:, :4] /= r
 
     # select da & ll segment area.
-    da_seg_out = da_seg_out[:, :, dh:dh + new_unpad_h, dw:dw + new_unpad_w]
+    # da_seg_out = da_seg_out[:, :, dh:dh + new_unpad_h, dw:dw + new_unpad_w]
     ll_seg_out = ll_seg_out[:, :, dh:dh + new_unpad_h, dw:dw + new_unpad_w]
 
-    da_seg_mask = np.argmax(da_seg_out, axis=1)[0]  # (?,?) (0|1)
+    # da_seg_mask = np.argmax(da_seg_out, axis=1)[0]  # (?,?) (0|1)
     ll_seg_mask = np.argmax(ll_seg_out, axis=1)[0]  # (?,?) (0|1)
 
-    color_area = np.zeros((new_unpad_h, new_unpad_w, 3), dtype=np.uint8)
-    color_area[da_seg_mask == 1] = [0, 255, 0]
-    color_area[ll_seg_mask == 1] = [255, 0, 0]
-    color_seg = color_area
-
-    # convert to BGR
-    color_seg = color_seg[..., ::-1]
-    color_mask = np.mean(color_seg, 2)
     img_merge = canvas[dh:dh + new_unpad_h, dw:dw + new_unpad_w, :]
     img_merge = img_merge[:, :, ::-1]
 
-    # merge: resize to original size
-    img_merge[color_mask != 0] = \
-        img_merge[color_mask != 0] * 0.5 + color_seg[color_mask != 0] * 0.5
+    contours, hierarchy = cv2.findContours(ll_seg_mask, cv2.RETR_FLOODFILL, cv2.CHAIN_APPROX_SIMPLE)
     img_merge = img_merge.astype(np.uint8)
-    img_merge = cv2.resize(img_merge, (width, height),
-                           interpolation=cv2.INTER_NEAREST)
+
+    contours_filtered = []
+    contour_points_x = []
+    contour_points_y = []
+    for i in range(len(contours)):
+        if contours[i].shape[0] > 50:
+            contours_filtered.append(contours[i])
+            points_x = []
+            points_y = []
+            for j in range(contours[i].shape[0]):
+                points_x.append(contours[i][j][0][0])
+                points_y.append(contours[i][j][0][1])
+
+            contour_points_x.append(points_x)
+            contour_points_y.append(points_y)
+
+    contour_fits = []
+
+    for i in range(len(contour_points_x)):
+        c, stats = np.polynomial.polynomial.polyfit(contour_points_x[i], contour_points_y[i], 2, full=True)
+        contour_fits.append((c, stats))
+
+    for i in range(len(contour_fits)):
+        for j in range(np.amin(contour_points_x[i]), np.amax(contour_points_x[i]), 10):
+            x = j
+            c = contour_fits[i][0]
+            y = int(polyval(j, c))
+            #y = c[0] + c[1] * x + c[2] * x ** 2 + c[3] * x ** 3
+
+            cv2.circle(img_merge, (x, y), 2, (np.random.randint(0, 255), 0, 0), 2)
+
+    img_merge = cv2.resize(img_merge, (width, height), interpolation=cv2.INTER_NEAREST)
+
     for i in range(boxes.shape[0]):
         x1, y1, x2, y2, conf, label = boxes[i]
         x1, y1, x2, y2, label = int(x1), int(y1), int(x2), int(y2), int(label)
