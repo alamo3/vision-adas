@@ -18,7 +18,7 @@ execution_providers = [
 
 ort_session = ort.InferenceSession(onnx_path, providers=execution_providers)
 
-video_cap = cv2.VideoCapture('../test_video/test_highway.hevc')
+video_cap = cv2.VideoCapture('../test_video/test_creditview.mp4')
 
 
 def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=None, agnostic=False, labels=()):
@@ -246,16 +246,34 @@ def infer_yolop():
             c = contour_fits[i][0]
             y = int(polyval(j, c))
 
-            cv2.circle(img_merge, (x, y), 2, (200, 200, 200), 2)
+            cv2.circle(img_merge, (x, y), 2, (221, 160, 222), 1)
 
     # Resize image to original input size
     img_merge = cv2.resize(img_merge, (width, height), interpolation=cv2.INTER_NEAREST)
+
+    mid_point = img_merge.shape[1] / 2
+    min_from_midpoint = 1000
+    bbox_lead = None
 
     # Draw bounding boxes for car object detection.
     for i in range(boxes.shape[0]):
         x1, y1, x2, y2, conf, label = boxes[i]
         x1, y1, x2, y2, label = int(x1), int(y1), int(x2), int(y2), int(label)
+        mid_bbox = (x1 + x2) / 2
+        mid_bbox_y = (y1+y2 ) / 2
+        from_midpoint = abs(mid_point - mid_bbox)
+        if from_midpoint < min_from_midpoint:
+            min_from_midpoint = from_midpoint
+            bbox_lead = (x1, y1, x2, y2)
+
+        cv2.circle(img_merge, (int(mid_bbox), int(mid_bbox_y)), 2, (0, 0, 200), 4)
+
         img_merge = cv2.rectangle(img_merge, (x1, y1), (x2, y2), (255, 0, 0), 2, 2)
+
+    if bbox_lead is not None:
+        cv2.rectangle(img_merge, (bbox_lead[0], bbox_lead[1]), (bbox_lead[2], bbox_lead[3]), (0, 255, 0), 2, 2)
+
+    cv2.circle(img_merge, (int(mid_point), 800), 2, (0,0,200), 4)
 
     return img_merge
 
