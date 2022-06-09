@@ -9,7 +9,6 @@ import numpy as np
 import cv2
 import glob
 import yaml
-#import pathlib
 
 # termination criteria
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -23,12 +22,14 @@ img_points = [] # 2d points in image plane.
 images = glob.glob(r'../calibration_images/*.jpg')
 
 found = 0
-for fname in images:  # Here, 10 can be changed to whatever number you like to choose
+for fname in images:
     img = cv2.imread(fname) # Capture frame-by-frame
-    #print(images[im_i])
+
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
     # Find the chess board corners
     ret, corners = cv2.findChessboardCorners(gray, (7,7), None)
+
     # If found, add object points, image points (after refining them)
     if ret == True:
         obj_points.append(objp)   # Certainly, every loop objp is the same, in 3D.
