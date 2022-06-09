@@ -5,6 +5,7 @@ import onnxruntime as ort
 import numpy as np
 import cv2
 
+import utils
 from utils import extract_preds, draw_path, Calibration, transform_img, reshape_yuv
 
 from common.transformations.camera import eon_intrinsics
@@ -91,7 +92,11 @@ class VisionModel:
 
         # Get lead car information from the model output
         lead_x = pred_onnx[0][0][5755]
-        lead_y = pred_onnx[0][0][5758]
+        lead_y = pred_onnx[0][0][5756]
+        lead_prob = pred_onnx[0][0][5857]
+        lead_prob = utils.sigmoid(lead_prob)
+
+        print(lead_prob)
 
         pose_speed_x = pred_onnx[0][0][5948]
         pose_speed_y = pred_onnx[0][0][5950]
@@ -117,7 +122,7 @@ class VisionModel:
         vis_image = None
 
         if self.show_vis:
-            vis_image = self.visualize(lead_d, lead_x, lead_y, orig_frame, lane_lines, road_edges, best_path)
+            vis_image = self.visualize(lead_d, lead_x, lead_y, lead_prob, orig_frame, lane_lines, road_edges, best_path)
 
         # print(pred_onnx[0][0][5755], pred_onnx[0][0][5756], sigmoid(pred_onnx[0][0][5857]))
 
@@ -137,7 +142,7 @@ class VisionModel:
         return lead_x, lead_y, lead_d, pose_speed, vis_image
 
     # Some fancy math to show stuff on the image
-    def visualize(self, lead_d, lead_x, lead_y, frame, lanelines, road_edges, best_path):
+    def visualize(self, lead_d, lead_x, lead_y, lead_prob,frame, lanelines, road_edges, best_path):
         rpy_calib = [math.radians(-2), math.radians(0.2), 0]
         plot_img_height, plot_img_width = 874, 1168
 
@@ -157,7 +162,10 @@ class VisionModel:
                               width=2)
 
         cv2.circle(vis_image, center=tuple_lead, radius=radius_lead, color=(255, 0, 0), thickness=-1)
-        cv2.putText(vis_image, 'Lead Distance = ' + str(self.total_dlead / self.frame_count), (0, 30),
+        cv2.putText(vis_image, 'Lead Distance = ' + str(round(self.total_dlead / self.frame_count, 3)) + ' m', (0, 30),
+                    cv2.FONT_HERSHEY_PLAIN, 2,
+                    (255, 0, 0), 1)
+        cv2.putText(vis_image, 'Lead Probability = ' + str(round(lead_prob * 100, 1)) + ' %', (0, 70),
                     cv2.FONT_HERSHEY_PLAIN, 2,
                     (255, 0, 0), 1)
 

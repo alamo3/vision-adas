@@ -8,7 +8,7 @@ import research.lane_change as lc
 import cv2
 
 # open up our test file we can set this to be a webcam or video
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture('test_video/test_creditview.mp4')
 
 # open up traffic output file for appending new data.
 out_traffic = open('traffic_output.txt', "a+")
