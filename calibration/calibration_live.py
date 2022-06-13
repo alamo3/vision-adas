@@ -19,11 +19,13 @@ objp[:,:2] = np.mgrid[0:7,0:7].T.reshape(-1,2)
 obj_points = [] # 3d point in real world space
 img_points = [] # 2d points in image plane.
 
-images = glob.glob(r'../calibration_images/*.jpg')
+video_cap = cv2.VideoCapture(0)
 
 found = 0
-for fname in images:
-    img = cv2.imread(fname) # Capture frame-by-frame
+while found <=150:
+    ret, img = video_cap.read() # Capture frame-by-frame
+
+    cv2.imshow('img_raw', img)
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -32,6 +34,7 @@ for fname in images:
 
     # If found, add object points, image points (after refining them)
     if ret == True:
+        print('found')
         obj_points.append(objp)   # Certainly, every loop objp is the same, in 3D.
         corners2 = cv2.cornerSubPix(gray,corners,(11,11),(-1,-1),criteria)
         img_points.append(corners2)
@@ -39,11 +42,12 @@ for fname in images:
         img = cv2.drawChessboardCorners(img, (7,7), corners2, ret)
         found += 1
         cv2.imshow('img', img)
-        cv2.waitKey(0)
         # if you want to save images with detected corners
         # uncomment following 2 lines and lines 5, 18 and 19
         # image_name = path + '/calibresult' + str(found) + '.png'
         # cv2.imwrite(image_name, img)
+
+    cv2.waitKey(30)
 
 print("Number of images used for calibration: ", found)
 
@@ -52,12 +56,14 @@ print("Number of images used for calibration: ", found)
 cv2.destroyAllWindows()
 
 # calibration
+print('Calculating camera matrix')
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, gray.shape[::-1], None, None)
 
 # transform the matrix and distortion coefficients to writable lists
 data = {'camera_matrix': np.asarray(mtx).tolist(),
         'dist_coeff': np.asarray(dist).tolist()}
 
+print('Saving camera matrix')
 # and save it to a file
-with open("calibration_matrix.yaml", "w") as f:
+with open("calibration_matrix_live.yaml", "w") as f:
     yaml.dump(data, f)
