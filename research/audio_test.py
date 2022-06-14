@@ -1,7 +1,7 @@
 import simpleaudio as sa
+import os
 
-
-lane_change_sound = sa.WaveObject.from_wave_file('LCAudio.wav')
+lane_change_sound = sa.WaveObject.from_wave_file(os.path.dirname(__file__)+'\LCAudio.wav')
 
 
 def test_sound():

@@ -6,6 +6,7 @@ from main import field_experiment
 from gps.gps import GPSReceiver
 
 import simpleaudio as sa
+import os
 
 
 gtim = 96  # green time (with 120 sec cycle)
@@ -13,7 +14,7 @@ tcyc = 120  # cycle length is 120 sec
 tdwl = 30  # bus dwelling time
 dbus = 20  # distance between bus station and the signal
 
-lane_change_sound = sa.WaveObject.from_wave_file('LCAudio.wav')
+lane_change_sound = sa.WaveObject.from_wave_file(os.path.dirname(__file__)+'\LCAudio.wav')
 
 gpsd = None
 
