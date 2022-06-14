@@ -1,17 +1,19 @@
 import threading
 from datetime import datetime
-from playsound import playsound
 import geopy.distance as gd
 from main import out_traffic
 from main import field_experiment
 from gps.gps import GPSReceiver
-import os
+
+import simpleaudio as sa
 
 
 gtim = 96  # green time (with 120 sec cycle)
 tcyc = 120  # cycle length is 120 sec
 tdwl = 30  # bus dwelling time
 dbus = 20  # distance between bus station and the signal
+
+lane_change_sound = sa.WaveObject.from_wave_file('LCAudio.wav')
 
 gpsd = None
 
@@ -65,5 +67,5 @@ def lane_change_algo_lat_lon(b_dist, speed, lat, lon):
 
 
 def notify_driver():
-    path = os.path.dirname(__file__)
-    playsound(path+'\LCAudio.mp3')
+    play_sound = lane_change_sound.play()
+    play_sound.wait_done()
