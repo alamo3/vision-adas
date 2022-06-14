@@ -15,10 +15,7 @@ and [@nikebless](https://github.com/nikebless) for a lot of the project code [mo
 If you are using pycharm as your IDE, you can simply click VCS and then Get From Version Control. Then paste the link of this github page you should have all the necessary files in your directory to run the program.
 
 Install the required packages by typing the following commands into the terminal:
-- pip3 install onnxruntime
-- pip3 install numpy
-- pip3 install opencv-python
-- pip3 install h5py
+- pip3 install -r requirements.txt
 
 Run main.py:
 - python3 main.py
