@@ -7,6 +7,7 @@ import torch
 import torchvision
 from numpy.polynomial.polynomial import polyval
 from torchvision.ops import box_iou
+from yolop_model.output_writer import ModelOutputWriter
 
 # Model path
 onnx_path = '../models_pre/yolop-640-640.onnx'
@@ -16,7 +17,7 @@ execution_providers = [
     'CPUExecutionProvider'
 ]
 
-video_cap = '../test_video/test_highway.hevc'
+video_cap = '../test_video/test_monkey.hevc'
 
 
 class YoloPanopticModel:
@@ -31,6 +32,12 @@ class YoloPanopticModel:
         self.execution_providers = execution_device
         self.video_src = cv2.VideoCapture(video_src)
         self.onnxrt_session = ort.InferenceSession(self.model_path, providers=self.execution_providers)
+        self.frame_count = 1
+        self.save_out = save_output
+
+        if save_output:
+            ret, sample_frame = self.video_src.read()
+            self.output_writer = ModelOutputWriter(lane_poly_deg=3, model_res=self.model_res,video_res=sample_frame.shape)
 
         self.print_model_details()
 
@@ -279,6 +286,9 @@ class YoloPanopticModel:
 
                 cv2.circle(img_merge, (x, y), 2, (200, 200, 200), 2)
 
+        if self.save_out:
+            self.output_writer.append_data(len(contours_filtered), contour_fits, boxes.shape[0], boxes, self.frame_count)
+
         # Resize image to original input size
         img_merge = cv2.resize(img_merge, (width, height), interpolation=cv2.INTER_NEAREST)
 
@@ -288,11 +298,13 @@ class YoloPanopticModel:
             x1, y1, x2, y2, label = int(x1), int(y1), int(x2), int(y2), int(label)
             img_merge = cv2.rectangle(img_merge, (x1, y1), (x2, y2), (255, 0, 0), 2, 2)
 
+        self.frame_count = self.frame_count + 1
+
         return img_merge, ret
 
 
 if __name__ == "__main__":
-    model_yp = YoloPanopticModel()
+    model_yp = YoloPanopticModel(save_output=True)
 
     try:
         while True:
@@ -302,5 +314,6 @@ if __name__ == "__main__":
                 cv2.waitKey(1)
     except BaseException as e:
         print("Error while running model: {}".format(e))
+        model_yp.output_writer.save_data()
 
 

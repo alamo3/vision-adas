@@ -6,3 +6,4 @@ traffic_output.txt
 *.pt
 *.yaml
 /calibration_images
+*.json
