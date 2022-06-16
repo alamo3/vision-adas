@@ -21,7 +21,8 @@ video_cap = '../test_video/test_highway.hevc'
 
 class YoloPanopticModel:
 
-    def __init__(self, model_path=onnx_path, model_res=(640, 640), execution_device=None, video_src=video_cap):
+    def __init__(self, model_path=onnx_path, model_res=(640, 640), execution_device=None, video_src=video_cap,
+                 save_output=False):
         if execution_device is None:
             execution_device = execution_providers
 
@@ -145,7 +146,11 @@ class YoloPanopticModel:
         y[:, 3] = x[:, 1] + x[:, 3] / 2  # bottom right y
         return y
 
-    def resize_unscale(self, img, new_shape=(640, 640), color=114):
+    def resize_unscale(self, img, new_shape=None, color=114):
+
+        if new_shape is None:
+            new_shape = self.model_res
+
         shape = img.shape[:2]  # current shape [height, width]
         if isinstance(new_shape, int):
             new_shape = (new_shape, new_shape)
@@ -189,9 +194,9 @@ class YoloPanopticModel:
         img_rgb = img_bgr[:, :, ::-1].copy()
 
         # resize & normalize
-        canvas, r, dw, dh, new_unpad_w, new_unpad_h = self.resize_unscale(img_rgb, (640, 640))
+        canvas, r, dw, dh, new_unpad_w, new_unpad_h = self.resize_unscale(img_rgb, self.model_res)
 
-        img = canvas.copy().astype(np.float32)  # (3,640,640) RGB
+        img = canvas.copy().astype(np.float32)  # (3,width,height) RGB
         img /= 255.0
         img[:, :, 0] -= 0.485
         img[:, :, 1] -= 0.456
@@ -202,9 +207,9 @@ class YoloPanopticModel:
 
         img = img.transpose(2, 0, 1)
 
-        img = np.expand_dims(img, 0)  # (1, 3,640,640)
+        img = np.expand_dims(img, 0)  # (1, 3, width,height)
 
-        # inference: (1,n,6) (1,2,640,640) (1,2,640,640)
+        # inference: (1,n,6) (1,2,width,height) (1,2,width, height)
 
         # run model on input image
         det_out, da_seg_out, ll_seg_out = self.onnxrt_session.run(
