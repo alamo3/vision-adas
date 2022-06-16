@@ -6,10 +6,10 @@ import numpy as np
 from model.runnner import VisionModel
 import research.lane_change as lc
 import cv2
-
+import threading
 # open up our test file we can set this to be a webcam or video
-cap = cv2.VideoCapture('test_video/test_creditview.mp4')
-
+cap = cv2.VideoCapture(0)
+timer = time.time()
 # open up traffic output file for appending new data.
 out_traffic = open('traffic_output.txt', "a+")
 
@@ -136,40 +136,59 @@ def save_video():
     Videos/latest_video_raw_datetime.mp4 (Direct video from camera without any processing)
     :return: None
     """
-    if len(vis_frames) > 0:
 
-        print('Saving video files before exit!')
-        w, h = 1164, 874
-        fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-        date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
-        writer = cv2.VideoWriter('Videos/latest_video_processed_' + date +'.mp4', fourcc, 20, (w, h))
+    global timer
+    while True:
+        '''
+        if len(vis_frames) > 0:
+            print('Saving video files before exit!')
+            w, h = 1164, 874
+            fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+            date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+            writer = cv2.VideoWriter('Videos/latest_video_processed_' + date +'.mp4', fourcc, 20, (w, h))
 
-        for frame in vis_frames:
-            writer.write(frame)
+            for frame in vis_frames:
+                writer.write(frame)
 
-        writer.release()
 
-    if len(cam_frames) > 0:
-        fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-        writer = cv2.VideoWriter('Videos/latest_video_raw_' + date + '.mp4', fourcc, 20, (w, h))
+            writer.release()
+'''
 
-        for frame in cam_frames:
-            writer.write(frame)
+        if len(cam_frames) > 0 and timer - time.time() >= 60:
+            fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+            date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+            writer = cv2.VideoWriter('Videos/latest_video_raw_' + date + '.mp4', fourcc, 20, (1164, 874))
 
-        writer.release()
+            for frame in cam_frames:
+                writer.write(frame)
+                d=cam_frames
+            writer.release()
+            timer = time.time()
 
-        print('Video files saved!')
+            print('Video files saved!')
+            cam_frames.clear()
+
 
 
 if __name__ == "__main__":
 
     setup_image_stream()
 
+
+
     try:
         # Run the pipelines as long as we have data
+
+        t2 = threading.Thread(target=save_video)
+        t2.start()
         while True:
             frame1, frame2 = get_frames()
             process_model(frame1, frame2)
+
+            # starting thread 1
+
+            # starting thread 2
+
     except BaseException as e:
         print('An exception occurred: {}'.format(e))
     finally:
