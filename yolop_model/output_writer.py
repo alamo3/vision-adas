@@ -6,7 +6,7 @@ class ModelOutputWriter:
     def __init__(self, lane_poly_deg=3, model_res=(640, 640), video_res=(1920, 1080)):
         self.lane_poly_degree = lane_poly_deg
 
-        self.data_frame = {'model_res_x': model_res[0], 'model_res_y': model_res[1], 'video_res_x': video_res[0],
+        self.data_frame = {'model_res_y': model_res[0], 'model_res_x': model_res[1], 'video_res_x': video_res[0],
                            'video_res_y': video_res[1]}
 
     def append_data(self, num_lanes, coeffs_lanes, num_bboxes, bboxes, frame_num):
