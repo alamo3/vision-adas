@@ -14,7 +14,7 @@ tcyc = 120  # cycle length is 120 sec
 tdwl = 30  # bus dwelling time
 dbus = 20  # distance between bus station and the signal
 
-lane_change_sound = sa.WaveObject.from_wave_file(os.path.dirname(__file__)+'\LCAudio.wav')
+lane_change_sound = sa.WaveObject.from_wave_file(os.path.join(os.path.dirname(__file__), r'LCAudio.wav'))
 
 gpsd = None
 
