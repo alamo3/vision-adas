@@ -11,6 +11,8 @@ from utils import extract_preds, draw_path, Calibration, transform_img, reshape_
 from common.transformations.camera import eon_intrinsics
 from common.transformations.model import medmodel_intrinsics
 
+from calibration.openpilot_calib import Calibrator
+
 providers = [
     'CPUExecutionProvider',
 ]
@@ -18,10 +20,11 @@ providers = [
 
 class VisionModel:
 
-    def __init__(self, using_wide, show_vis):
+    def __init__(self, using_wide, show_vis, cam_calib=None):
 
         self.using_wide = using_wide
         self.show_vis = show_vis
+        self.cam_calib = cam_calib
 
         self.ml_session = ort.InferenceSession('models_pre/supercombo.onnx',
                                                providers=providers)
