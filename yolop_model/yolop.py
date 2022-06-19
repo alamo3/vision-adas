@@ -8,6 +8,7 @@ import torchvision
 from numpy.polynomial.polynomial import polyval
 from torchvision.ops import box_iou
 from yolop_model.output_writer import ModelOutputWriter
+from model.depth_estimation import DepthEstimator
 
 # Model path
 onnx_path = '../models_pre/yolop-640-640.onnx'
@@ -23,7 +24,7 @@ video_cap = '../test_video/test_monkey.hevc'
 class YoloPanopticModel:
 
     def __init__(self, model_path=onnx_path, model_res=(640, 640), execution_device=None, video_src=video_cap,
-                 save_output=False):
+                 save_output=False, predict_depth=False):
         if execution_device is None:
             execution_device = execution_providers
 
@@ -38,6 +39,11 @@ class YoloPanopticModel:
         if save_output:
             ret, sample_frame = self.video_src.read()
             self.output_writer = ModelOutputWriter(lane_poly_deg=3, model_res=self.model_res,video_res=sample_frame.shape)
+
+        self.predict_depth = predict_depth
+
+        if self.predict_depth:
+            self.depth_estimator = DepthEstimator()
 
         self.print_model_details()
 
@@ -227,6 +233,7 @@ class YoloPanopticModel:
         # perform Non Max Suppression on detection bounding boxes
         det_out = torch.from_numpy(det_out).float()
         boxes = self.non_max_suppression(det_out)[0]  # [n,6] [x1,y1,x2,y2,conf,cls]
+        boxes_depth = boxes.cpu().numpy().astype(np.float32)
         boxes = boxes.cpu().numpy().astype(np.float32)
 
         # scale coords to original size.
@@ -292,11 +299,20 @@ class YoloPanopticModel:
         # Resize image to original input size
         img_merge = cv2.resize(img_merge, (width, height), interpolation=cv2.INTER_NEAREST)
 
+        bboxes_depth = boxes_depth[:, 0:4]
+        predicted_depth = None
+        if self.predict_depth:
+            predicted_depth = self.depth_estimator.predict_depth(bboxes_depth)
+
         # Draw bounding boxes for car object detection.
         for i in range(boxes.shape[0]):
             x1, y1, x2, y2, conf, label = boxes[i]
             x1, y1, x2, y2, label = int(x1), int(y1), int(x2), int(y2), int(label)
             img_merge = cv2.rectangle(img_merge, (x1, y1), (x2, y2), (255, 0, 0), 2, 2)
+
+            if self.predict_depth:
+                cv2.putText(img_merge, str(predicted_depth[i]), (x1, y1 - 2), cv2.FONT_HERSHEY_SIMPLEX,
+                            0.5, (0, 0, 0), lineType=cv2.LINE_AA)
 
         self.frame_count = self.frame_count + 1
 
@@ -304,7 +320,7 @@ class YoloPanopticModel:
 
 
 if __name__ == "__main__":
-    model_yp = YoloPanopticModel(save_output=True)
+    model_yp = YoloPanopticModel(save_output=False, predict_depth=True)
 
     try:
         while True:
