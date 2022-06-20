@@ -5,7 +5,7 @@ import numpy as np
 from common.transformations.camera import get_view_frame_from_road_frame
 from common.transformations.orientation import euler_from_rot, rot_from_euler
 
-MIN_SPEED_FILTER = 24  # Minimum speed require for calibration to accept data
+MIN_SPEED_FILTER = 6.66667  # Minimum speed required for calibration to accept data m/s
 MAX_VEL_ANGLE_STD = np.radians(0.25)  # Maximum angular velocity allowed below which calibration data is acceptable
 MAX_YAW_RATE_FILTER = np.radians(2)  # Maximum Yaw rate allowed below which calibration data is acceptable
 
@@ -146,5 +146,5 @@ class Calibrator:
         cal_status = self.cal_status
         rpy_calib = [float(x) for x in smooth_rpy]
 
-        return {'extrinsic': extrinsic_matrix_flattened, 'cal_percentage': cal_percentage, 'cal_status': cal_status,
-                'rot_pitch_yaw': rpy_calib}
+        return {'extrinsic': extrinsic_matrix, 'cal_percentage': cal_percentage, 'cal_status': cal_status,
+                'roll_pitch_yaw': rpy_calib}

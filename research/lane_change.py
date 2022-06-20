@@ -16,7 +16,9 @@ dbus = 20  # distance between bus station and the signal
 
 lane_change_sound = sa.WaveObject.from_wave_file(os.path.join(os.path.dirname(__file__), r'LCAudio.wav'))
 
-gpsd = None
+last_speed = 0
+
+gps = None
 
 if field_experiment:
     gps = GPSReceiver()
@@ -29,12 +31,19 @@ def lane_change_algo(b_dist):
     if gps_dict is not None:
         lane_change_algo_lat_lon(b_dist, gps_dict['speed'], gps_dict['lat'], gps_dict['lon'])
 
+def get_last_speed():
+    global last_speed
+    return last_speed
+
 
 def lane_change_algo_lat_lon(b_dist, speed, lat, lon):
+    global last_speed
     coor1 = (lat, lon)
     coor0 = (43.261875833, -79.930346333)  # ---------------signal coordination, to be modified ---------------#
     s_dist = gd.distance(coor0, coor1).km * 1000
     s_vel = speed
+
+    last_speed = speed
 
     # sveh=15/3.6 # speed of individual vehicles
     # s_dist=s_dist+dbus

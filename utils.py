@@ -18,6 +18,11 @@ eon_intrinsics = np.array(
         [0., FOCAL, H / 2.],
         [0., 0., 1.]])
 
+ground_from_medmodel_frame=[
+    [0.00000000e+00, 0.00000000e+00, 1.00000000e+00],
+    [-1.09890110e-03, 0.00000000e+00, 2.81318681e-01],
+    [-1.84808520e-20, 9.00738606e-04,-4.28751576e-02]]
+
 # no clue what this stuff is :( probably something to do with scaling
 X_IDXs = [
     0., 0.1875, 0.75, 1.6875, 3., 4.6875,

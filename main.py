@@ -1,23 +1,25 @@
 import time
+import traceback
 from datetime import datetime
 
 import numpy as np
 
-from model.runnner import VisionModel
+from model.openpilot_model import VisionModel
 import research.lane_change as lc
+from research.lane_change import gps
 import cv2
 
 # open up our test file we can set this to be a webcam or video
-cap = cv2.VideoCapture('test_video/fcamera2.mp4')
+cap = cv2.VideoCapture('test_video/Untitled.mp4')
 
 # open up traffic output file for appending new data.
 out_traffic = open('traffic_output.txt', "a+")
 
-# Instantiate an instance of the OpenPilot vision model
-vision_model = VisionModel(using_wide=False, show_vis=True)
-
 # Set this to true when conducting field experiment. It will enable lane change algorithm and GPS
 field_experiment = False
+
+# Instantiate an instance of the OpenPilot vision model
+vision_model = VisionModel(using_wide=False, show_vis=True, use_model_speed= not field_experiment)
 
 # List of opencv images (numpy arrays) so we can save video when required.
 vis_frames = []
@@ -127,6 +129,7 @@ def process_model(frame1, frame2):
     # Run lane change algo if doing field experiment
     if field_experiment:
         lc.lane_change_algo(b_dist=lead_d)
+        vision_model.vehicle_speed = lc.get_last_speed()
 
 
 def save_video():
@@ -172,5 +175,6 @@ if __name__ == "__main__":
             process_model(frame1, frame2)
     except BaseException as e:
         print('An exception occurred: {}'.format(e))
+        traceback.print_exc()
     finally:
         save_video()  # save videos at all times.
