@@ -30,6 +30,6 @@ if __name__ == "__main__":
     ret, img = cap.read()
     if ret:
       img = cv2.warpPerspective(img, trans_webcam_to_eon_front, (1152, 864), borderMode=cv2.BORDER_CONSTANT, borderValue=0)
-      img = img[:, -864//2:, :]
+     # img = img[:, -864//2:, :]
       cv2.imshow('preview', img)
       cv2.waitKey(10)
