@@ -130,7 +130,7 @@ class Calibrator:
             self.block_idx += 1
             self.valid_blocks = max(self.block_idx, self.valid_blocks)
             self.block_idx = self.block_idx % INPUTS_WANTED
-        if self.valid_blocks > 45:
+        if self.valid_blocks > 0:
             self.rpy = np.mean(self.rpys[:self.valid_blocks], axis=0)
 
         self.update_status()

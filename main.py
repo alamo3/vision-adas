@@ -102,8 +102,8 @@ def get_frames():
     if not (ret1 or ret2):
         raise Exception("Error reading from image source")
 
-    frame_1 = res_frame_2(frame_1)  # resize frames
-    frame_2 = res_frame_2(frame_2)
+    frame_1 = res_frame(frame_1)  # resize frames
+    frame_2 = res_frame(frame_2)
 
     cam_frames.append(frame_1)   # append to camera frames for saving video later
     cam_frames.append(frame_2)

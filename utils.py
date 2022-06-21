@@ -18,10 +18,10 @@ eon_intrinsics = np.array(
         [0., FOCAL, H / 2.],
         [0., 0., 1.]])
 
-ground_from_medmodel_frame=[
+ground_from_medmodel_frame = [
     [0.00000000e+00, 0.00000000e+00, 1.00000000e+00],
     [-1.09890110e-03, 0.00000000e+00, 2.81318681e-01],
-    [-1.84808520e-20, 9.00738606e-04,-4.28751576e-02]]
+    [-1.84808520e-20, 9.00738606e-04, -4.28751576e-02]]
 
 # no clue what this stuff is :( probably something to do with scaling
 X_IDXs = [
@@ -128,6 +128,41 @@ def extract_preds(outputs, best_plan_only=True):
         result_batch.append(((lanelines, lanelines_probs), (road_edges, road_edges_probs), plan))
 
     return result_batch
+
+
+
+def get_transform_matrix(base_img,
+                         augment_trans=np.array([0, 0, 0]),
+                         augment_eulers=np.array([0, 0, 0]),
+                         from_intr=eon_intrinsics,
+                         to_intr=eon_intrinsics,
+                         output_size=None,
+                         h=1.22):
+    size = base_img.shape[:2]
+    if not output_size:
+        output_size = size[::-1]
+
+    cy = from_intr[1, 2]
+
+    quadrangle = np.array([[0, cy + 20],
+                           [size[1] - 1, cy + 20],
+                           [0, size[0] - 1],
+                           [size[1] - 1, size[0] - 1]], dtype=np.float32)
+    quadrangle_norm = np.hstack((normalize(quadrangle, intrinsics=from_intr), np.ones((4, 1))))
+    quadrangle_world = np.column_stack((h * quadrangle_norm[:, 0] / quadrangle_norm[:, 1],
+                                        h * np.ones(4),
+                                        h / quadrangle_norm[:, 1]))
+    rot = orient.rot_from_euler(augment_eulers)
+    to_extrinsics = np.hstack((rot.T, -augment_trans[:, None]))
+    to_KE = to_intr.dot(to_extrinsics)
+    warped_quadrangle_full = np.einsum('jk,ik->ij', to_KE, np.hstack((quadrangle_world, np.ones((4, 1)))))
+    warped_quadrangle = np.column_stack((warped_quadrangle_full[:, 0] / warped_quadrangle_full[:, 2],
+                                         warped_quadrangle_full[:, 1] / warped_quadrangle_full[:, 2])).astype(
+        np.float32)
+
+    M = cv2.getPerspectiveTransform(quadrangle, warped_quadrangle.astype(np.float32))
+
+    return M
 
 
 def transform_img(base_img,
@@ -268,7 +303,7 @@ class Calibration:
 
     def __init__(self, rpy, intrinsic=eon_intrinsics, plot_img_width=640, plot_img_height=480):
         self.intrinsic = intrinsic
-        self.extrinsics_matrix = get_view_frame_from_calib_frame(rpy[0], rpy[1], rpy[2], 0)[:, :3]
+        self.extrinsics_matrix = get_view_frame_from_calib_frame(rpy[0], rpy[1], rpy[2], 1.22)[:, :3]
         self.plot_img_width = plot_img_width
         self.plot_img_height = plot_img_height
         self.zoom = W / plot_img_width

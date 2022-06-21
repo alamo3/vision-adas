@@ -9,7 +9,7 @@ import utils
 from utils import extract_preds, draw_path, Calibration, transform_img, reshape_yuv
 
 from common.transformations.camera import eon_intrinsics
-from common.transformations.camera import yuv_crop
+from common.transformations.camera import pretransform_from_calib
 from common.transformations.model import medmodel_intrinsics
 
 from calibration.openpilot_calib import Calibrator
@@ -67,17 +67,22 @@ class VisionModel:
         cv2.imshow('calibrated', frame1)
 
         # Convert the frames into the YUV420 color space
-        frame1 = cv2.cvtColor(frame1, cv2.COLOR_RGB2YUV_I420)
-        frame2 = cv2.cvtColor(frame2, cv2.COLOR_RGB2YUV_I420)
+        frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2YUV_I420)
+        frame2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2YUV_I420)
 
         calib_rpy = self.cam_calib.get_calibration()['roll_pitch_yaw']
+        pretransform = pretransform_from_calib(calib_rpy)
+        calib_rpy = -1 * np.array([0, calib_rpy[1], calib_rpy[2]])
+
+       # print(calib_rpy)
 
         # Prep the frames for the model input format
         imgs_med_model = np.zeros((2, 384, 512), dtype=np.uint8)
         imgs_med_model[0] = transform_img(frame1, from_intr=eon_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
-                                          output_size=(512, 256), augment_eulers=np.array(calib_rpy))
+                                          output_size=(512, 256), augment_eulers=calib_rpy, augment_trans=calib_rpy, pretransform=pretransform)
         imgs_med_model[1] = transform_img(frame2, from_intr=eon_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
-                                          output_size=(512, 256), augment_eulers=np.array(calib_rpy))
+                                          output_size=(512, 256),
+                                          augment_eulers=calib_rpy, augment_trans=calib_rpy, pretransform=pretransform)
 
         cv2.imshow('yuv', imgs_med_model[0])
 
@@ -116,7 +121,7 @@ class VisionModel:
         lead_prob = pred_onnx[0][0][5857]
         lead_prob = utils.sigmoid(lead_prob)
 
-       # print(lead_prob)
+        # print(lead_prob)
 
         pose_speed_x = pred_onnx[0][0][5948]
         pose_speed_y = pred_onnx[0][0][5949]
@@ -128,8 +133,6 @@ class VisionModel:
         pose_speed_x_std = pred_onnx[0][0][5954]
         pose_speed_y_std = pred_onnx[0][0][5955]
         pose_speed_z_std = pred_onnx[0][0][5956]
-
-
 
         pose_speed = math.sqrt(pose_speed_x ** 2 + pose_speed_y ** 2 + pose_speed_z ** 2)
 
@@ -148,12 +151,13 @@ class VisionModel:
         self.total_dlead = self.total_dlead + lead_d
         self.frame_count = self.frame_count + 1
 
-
         # Save state recurrent vector for GRU in the next run
         self.state = pred_onnx[0][:, -512:]
 
-        new_rpy = self.cam_calib.update_calibration_movement([pose_speed_x, pose_speed_y, pose_speed_z], [roll, pitch, yaw],
-                                                   [pose_speed_x_std, pose_speed_y_std, pose_speed_z_std], None)
+        new_rpy = self.cam_calib.update_calibration_movement([pose_speed_x, pose_speed_y, pose_speed_z],
+                                                             [roll, pitch, yaw],
+                                                             [pose_speed_x_std, pose_speed_y_std, pose_speed_z_std],
+                                                             None)
 
         if new_rpy is not None:
             self.use_calibration = True
@@ -177,19 +181,23 @@ class VisionModel:
         if self.show_vis:
             cv2.waitKey(wait_time)
 
-
-
         return lead_x, lead_y, lead_d, pose_speed, vis_image
 
-
     # Some fancy math to show stuff on the image
-    def visualize(self, lead_d, lead_x, lead_y, lead_prob,frame, lanelines, road_edges, best_path):
-        rpy_calib = self.cam_calib.get_calibration()['roll_pitch_yaw']
+    def visualize(self, lead_d, lead_x, lead_y, lead_prob, frame, lanelines, road_edges, best_path):
+        calib_rpy = self.cam_calib.get_calibration()['roll_pitch_yaw']
 
-       # rpy_calib = [0, math.radians(-0.2), math.radians(2)]
+        calib_rpy = np.array([0, calib_rpy[1], calib_rpy[2]])
+
+        #M = utils.get_transform_matrix(base_img=frame, augment_eulers=calib_rpy, output_size=(1168, 874))
+
+        #frame = cv2.warpPerspective(frame, M, dsize=(1168, 874))
+
+        # rpy_calib = [0, math.radians(-0.2), math.radians(2)]
         plot_img_height, plot_img_width = 874, 1168
 
-        calibration_pred = Calibration(rpy_calib, plot_img_width=plot_img_width, plot_img_height=plot_img_height)
+        calibration_pred = Calibration(calib_rpy, plot_img_width=plot_img_width,
+                                       plot_img_height=plot_img_height)
 
         point_lead = calibration_pred.car_space_to_bb(lead_x, lead_y, 1.22)
 
