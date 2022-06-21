@@ -11,8 +11,8 @@ eon_dcam_intrinsics = np.array([
   [  0,    0,     1]])
 
 webcam_intrinsics = np.array([
-  [webcam_focal_length,   0.,   1280/2.],
-  [  0.,  webcam_focal_length,  720/2.],
+  [1470.,   0.,   1920/2.],
+  [  0.,  1465.01,  1080/2.],
   [  0.,    0.,     1.]])
 
 cam_id = 2

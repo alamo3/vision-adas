@@ -23,7 +23,7 @@ ground_from_medmodel_frame = [
     [-1.09890110e-03, 0.00000000e+00, 2.81318681e-01],
     [-1.84808520e-20, 9.00738606e-04, -4.28751576e-02]]
 
-# no clue what this stuff is :( probably something to do with scaling
+# fixed distances
 X_IDXs = [
     0., 0.1875, 0.75, 1.6875, 3., 4.6875,
     6.75, 9.1875, 12., 15.1875, 18.75, 22.6875,

@@ -23,6 +23,11 @@ eon_dcam_intrinsics = np.array([
   [  0,  860,  864//2],
   [  0,    0,     1]])
 
+webcam_intrinsics = np.array([
+  [645.,   0.,   W/2.],
+  [  0.,  648.,  H/2.],
+  [  0.,    0.,     1.]])
+
 # aka 'K_inv' aka view_frame_from_camera_frame
 eon_intrinsics_inv = np.linalg.inv(eon_intrinsics)
 

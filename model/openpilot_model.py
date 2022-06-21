@@ -8,9 +8,9 @@ import cv2
 import utils
 from utils import extract_preds, draw_path, Calibration, transform_img, reshape_yuv
 
-from common.transformations.camera import eon_intrinsics
+from common.transformations.camera import eon_intrinsics, webcam_intrinsics
 from common.transformations.camera import pretransform_from_calib
-from common.transformations.model import medmodel_intrinsics
+from common.transformations.model import medmodel_intrinsics, medmodel_intrinsics_webcam
 
 from calibration.openpilot_calib import Calibrator
 
@@ -67,22 +67,22 @@ class VisionModel:
         cv2.imshow('calibrated', frame1)
 
         # Convert the frames into the YUV420 color space
-        frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2YUV_I420)
-        frame2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2YUV_I420)
+        frame1 = cv2.cvtColor(frame1, cv2.COLOR_RGB2YUV_I420)
+        frame2 = cv2.cvtColor(frame2, cv2.COLOR_RGB2YUV_I420)
 
         calib_rpy = self.cam_calib.get_calibration()['roll_pitch_yaw']
         pretransform = pretransform_from_calib(calib_rpy)
-        calib_rpy = -1 * np.array([0, calib_rpy[1], calib_rpy[2]])
+        calib_rpy = np.array([0, calib_rpy[1], calib_rpy[2]])
 
        # print(calib_rpy)
 
         # Prep the frames for the model input format
         imgs_med_model = np.zeros((2, 384, 512), dtype=np.uint8)
-        imgs_med_model[0] = transform_img(frame1, from_intr=eon_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
-                                          output_size=(512, 256), augment_eulers=calib_rpy, augment_trans=calib_rpy, pretransform=pretransform)
-        imgs_med_model[1] = transform_img(frame2, from_intr=eon_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
+        imgs_med_model[0] = transform_img(frame1, from_intr=webcam_intrinsics, to_intr=medmodel_intrinsics_webcam, yuv=True,
+                                          output_size=(512, 256), augment_eulers=calib_rpy, pretransform=pretransform)
+        imgs_med_model[1] = transform_img(frame2, from_intr=webcam_intrinsics, to_intr=medmodel_intrinsics_webcam, yuv=True,
                                           output_size=(512, 256),
-                                          augment_eulers=calib_rpy, augment_trans=calib_rpy, pretransform=pretransform)
+                                          augment_eulers=calib_rpy, pretransform=pretransform)
 
         cv2.imshow('yuv', imgs_med_model[0])
 
@@ -199,7 +199,7 @@ class VisionModel:
         calibration_pred = Calibration(calib_rpy, plot_img_width=plot_img_width,
                                        plot_img_height=plot_img_height)
 
-        point_lead = calibration_pred.car_space_to_bb(lead_x, lead_y, 1.22)
+        point_lead = calibration_pred.car_space_to_bb(lead_d, lead_y, 1.22)
 
         tuple_lead = (int(point_lead[0][0]), int(point_lead[0][1]))
 
