@@ -6,11 +6,11 @@ import numpy as np
 
 from model.openpilot_model import VisionModel
 import research.lane_change as lc
-from research.lane_change import gps
+
 import cv2
 
 # open up our test file we can set this to be a webcam or video
-cap = cv2.VideoCapture('test_video/Untitled.mp4')
+cap = cv2.VideoCapture('test_video/test_cali.mp4')
 
 # open up traffic output file for appending new data.
 out_traffic = open('traffic_output.txt', "a+")
@@ -84,8 +84,11 @@ def setup_image_stream():
     Sets up video source streaming properties such as resolution and exposure
     :return: None
     """
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 854)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap.set(cv2.CAP_PROP_FPS, 20)
+    cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+    cap.set(cv2.CAP_PROP_FOCUS, 0)
 
 
 def get_frames():

@@ -130,7 +130,7 @@ class Calibrator:
             self.block_idx += 1
             self.valid_blocks = max(self.block_idx, self.valid_blocks)
             self.block_idx = self.block_idx % INPUTS_WANTED
-        if self.valid_blocks > 0:
+        if self.valid_blocks > 45:
             self.rpy = np.mean(self.rpys[:self.valid_blocks], axis=0)
 
         self.update_status()
@@ -143,6 +143,10 @@ class Calibrator:
 
         extrinsic_matrix_flattened = [float(x) for x in extrinsic_matrix.flatten()]
         cal_percentage = min(100 * (self.valid_blocks * BLOCK_SIZE + self.idx) // (INPUTS_NEEDED * BLOCK_SIZE), 100)
+
+        # if cal_percentage>=20:
+        #     print('bug')
+
         cal_status = self.cal_status
         rpy_calib = [float(x) for x in smooth_rpy]
 

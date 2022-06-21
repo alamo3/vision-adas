@@ -9,6 +9,7 @@ import utils
 from utils import extract_preds, draw_path, Calibration, transform_img, reshape_yuv
 
 from common.transformations.camera import eon_intrinsics
+from common.transformations.camera import yuv_crop
 from common.transformations.model import medmodel_intrinsics
 
 from calibration.openpilot_calib import Calibrator
@@ -74,9 +75,9 @@ class VisionModel:
         # Prep the frames for the model input format
         imgs_med_model = np.zeros((2, 384, 512), dtype=np.uint8)
         imgs_med_model[0] = transform_img(frame1, from_intr=eon_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
-                                          output_size=(512, 256), augment_eulers=calib_rpy)
+                                          output_size=(512, 256), augment_eulers=np.array(calib_rpy))
         imgs_med_model[1] = transform_img(frame2, from_intr=eon_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
-                                          output_size=(512, 256))
+                                          output_size=(512, 256), augment_eulers=np.array(calib_rpy))
 
         cv2.imshow('yuv', imgs_med_model[0])
 
@@ -157,7 +158,7 @@ class VisionModel:
         if new_rpy is not None:
             self.use_calibration = True
             calib_result = self.cam_calib.get_calibration()
-            print('Calibration status: ', self.cam_calib.cal_status, 'Calibration: ', calib_result['cal_percentage'])
+            print('Calibration status: ', self.cam_calib.cal_status, 'Calibration: ', calib_result['cal_percentage'], [math.degrees(x) for x in new_rpy])
 
         # Visualize the model output onto the image
 
