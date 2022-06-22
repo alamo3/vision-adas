@@ -103,8 +103,9 @@ class Calibrator:
 
         # If spread is too high, assume mounting was changed and reset to last block.
         # Make the transition smooth. Abrupt transistion are not good foor feedback loop through supercombo model.
-        if max(self.calib_spread) > MAX_ALLOWED_SPREAD and self.cal_status == Calibration.CALIBRATED:
-            self.reset(self.rpys[self.block_idx - 1], valid_blocks=INPUTS_NEEDED, smooth_from=self.rpy)
+        # if max(self.calib_spread) > MAX_ALLOWED_SPREAD and self.cal_status == Calibration.CALIBRATED:
+        #     print('Resetting calibration')
+        #     self.reset(self.rpys[self.block_idx - 1], valid_blocks=INPUTS_NEEDED, smooth_from=self.rpy)
 
         write_this_cycle = (self.idx == 0) and (self.block_idx % (INPUTS_WANTED // 5) == 5)
         if self.param_put and write_this_cycle:
@@ -112,6 +113,7 @@ class Calibrator:
                           "valid_blocks": int(self.valid_blocks)}
 
             with open('parameter.json', 'w', encoding='utf-8') as f:
+                print('Saving calibration!')
                 json.dump(cal_params, f, indent=4)
 
 

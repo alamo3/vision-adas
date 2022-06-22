@@ -162,7 +162,7 @@ class VisionModel:
         if new_rpy is not None:
             self.use_calibration = True
             calib_result = self.cam_calib.get_calibration()
-            print('Calibration status: ', self.cam_calib.cal_status, 'Calibration: ', calib_result['cal_percentage'], [math.degrees(x) for x in new_rpy])
+            # print('Calibration status: ', self.cam_calib.cal_status, 'Calibration: ', calib_result['cal_percentage'], [math.degrees(x) for x in new_rpy])
 
         # Visualize the model output onto the image
 
@@ -185,6 +185,10 @@ class VisionModel:
 
     # Some fancy math to show stuff on the image
     def visualize(self, lead_d, lead_x, lead_y, lead_prob, frame, lanelines, road_edges, best_path):
+        calib = self.cam_calib.get_calibration()
+        percent = calib["cal_percentage"]
+        status = calib["cal_status"]
+
         calib_rpy = self.cam_calib.get_calibration()['roll_pitch_yaw']
 
         calib_rpy = np.array([0, calib_rpy[1], calib_rpy[2]])
@@ -215,11 +219,12 @@ class VisionModel:
         cv2.circle(vis_image, center=tuple_lead, radius=radius_lead, color=(255, 0, 0), thickness=-1)
         cv2.putText(vis_image, 'Lead Distance = ' + str(round(self.total_dlead / self.frame_count, 3)) + ' m', (0, 30),
                     cv2.FONT_HERSHEY_PLAIN, 2,
-                    (255, 0, 0), 1)
+                    (255, 0, 0), 4)
         cv2.putText(vis_image, 'Lead Probability = ' + str(round(lead_prob * 100, 1)) + ' %', (0, 70),
                     cv2.FONT_HERSHEY_PLAIN, 2,
-                    (255, 0, 0), 1)
-
+                    (255, 0, 0), 4)
+        cv2.putText(vis_image, 'Calibration Percentage = ' + str(percent), (650,30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 4)
+        cv2.putText(vis_image, 'Calibration Status = ' + str(status),(650,70), cv2.FONT_HERSHEY_PLAIN, 2,(0, 0, 255), 4 )
         cv2.imshow('frame', vis_image)
 
         return vis_image
