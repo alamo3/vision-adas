@@ -1,5 +1,7 @@
 import copy
 import ast
+import json
+
 import numpy as np
 
 from common.transformations.camera import get_view_frame_from_road_frame
@@ -41,7 +43,7 @@ def sanity_clip(rpy):
 
 
 class Calibrator:
-    def __init__(self, param_put=False, calib_file=None):
+    def __init__(self, param_put=True, calib_file=None):
         self.param_put = param_put
 
         rpy_init = RPY_INIT
@@ -51,10 +53,12 @@ class Calibrator:
 
         if calib_file is not None:
             file = open(calib_file, 'r')
-            param = file.read()
+            param = json.load(file)
+            rpy_rads = param['calib_radians']
             # Converting string to list
-            res = np.array(ast.literal_eval(param))
+            res = np.array([rpy_rads[0], rpy_rads[1], rpy_rads[2]])
             rpy_init = res
+            valid_blocks = int(param['valid_blocks'])
             smooth_from = rpy_init
 
         self.reset(rpy_init, valid_blocks, smooth_from=smooth_from)
@@ -107,6 +111,10 @@ class Calibrator:
             cal_params = {"calib_radians": list(self.rpy),
                           "valid_blocks": int(self.valid_blocks)}
 
+            with open('parameter.json', 'w', encoding='utf-8') as f:
+                json.dump(cal_params, f, indent=4)
+
+
     def update_car_speed(self, v_ego):
         self.v_ego = v_ego
 
@@ -143,8 +151,7 @@ class Calibrator:
         if self.valid_blocks > 0:
             self.rpy = np.mean(self.rpys[:self.valid_blocks], axis=0)
 
-        with open('parameter.txt','w') as f:
-            f.write(str(list(self.rpy)))
+
 
         self.update_status()
 

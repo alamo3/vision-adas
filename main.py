@@ -20,8 +20,10 @@ out_traffic = open('traffic_output.txt', "a+")
 field_experiment = False
 
 # Instantiate an instance of the OpenPilot vision model
-cam_calib = Calibrator(calib_file='parameter.txt')
-vision_model = VisionModel(using_wide=False, show_vis=True, use_model_speed= not field_experiment)
+cam_calib_file = 'parameter.json'
+
+cam_calib = Calibrator(calib_file=cam_calib_file)
+vision_model = VisionModel(using_wide=False, show_vis=True, use_model_speed= not field_experiment, cam_calib=cam_calib)
 
 # List of opencv images (numpy arrays) so we can save video when required.
 vis_frames = []
