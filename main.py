@@ -4,6 +4,7 @@ from datetime import datetime
 
 import numpy as np
 
+from calibration.openpilot_calib import Calibration, Calibrator
 from model.openpilot_model import VisionModel
 import research.lane_change as lc
 
@@ -19,6 +20,7 @@ out_traffic = open('traffic_output.txt', "a+")
 field_experiment = False
 
 # Instantiate an instance of the OpenPilot vision model
+cam_calib = Calibrator(calib_file='parameter.txt')
 vision_model = VisionModel(using_wide=False, show_vis=True, use_model_speed= not field_experiment)
 
 # List of opencv images (numpy arrays) so we can save video when required.
@@ -142,6 +144,7 @@ def save_video():
     Videos/latest_video_raw_datetime.mp4 (Direct video from camera without any processing)
     :return: None
     """
+
     if len(vis_frames) > 0:
 
         print('Saving video files before exit!')
