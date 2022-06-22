@@ -1,5 +1,5 @@
 import copy
-
+import ast
 import numpy as np
 
 from common.transformations.camera import get_view_frame_from_road_frame
@@ -41,13 +41,23 @@ def sanity_clip(rpy):
 
 
 class Calibrator:
-    def __init__(self, param_put=False):
+    def __init__(self, param_put=False, calib_file=None):
         self.param_put = param_put
 
         rpy_init = RPY_INIT
         valid_blocks = 0
 
-        self.reset(rpy_init, valid_blocks)
+        smooth_from = None
+
+        if calib_file is not None:
+            file = open(calib_file, 'r')
+            param = file.read()
+            # Converting string to list
+            res = np.array(ast.literal_eval(param))
+            rpy_init = res
+            smooth_from = rpy_init
+
+        self.reset(rpy_init, valid_blocks, smooth_from=smooth_from)
         self.update_status()
 
     def reset(self, rpy_init=RPY_INIT, valid_blocks=0, smooth_from=None):
@@ -132,6 +142,9 @@ class Calibrator:
             self.block_idx = self.block_idx % INPUTS_WANTED
         if self.valid_blocks > 0:
             self.rpy = np.mean(self.rpys[:self.valid_blocks], axis=0)
+
+        with open('parameter.txt','w') as f:
+            f.write(str(list(self.rpy)))
 
         self.update_status()
 
