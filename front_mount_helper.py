@@ -11,8 +11,8 @@ eon_dcam_intrinsics = np.array([
   [  0,    0,     1]])
 
 webcam_intrinsics = np.array([
-  [webcam_focal_length,   0.,   1280/2.],
-  [  0.,  webcam_focal_length,  720/2.],
+  [1470.,   0.,   1920/2.],
+  [  0.,  1465.01,  1080/2.],
   [  0.,    0.,     1.]])
 
 cam_id = 2
@@ -30,6 +30,6 @@ if __name__ == "__main__":
     ret, img = cap.read()
     if ret:
       img = cv2.warpPerspective(img, trans_webcam_to_eon_front, (1152, 864), borderMode=cv2.BORDER_CONSTANT, borderValue=0)
-      img = img[:, -864//2:, :]
+     # img = img[:, -864//2:, :]
       cv2.imshow('preview', img)
       cv2.waitKey(10)

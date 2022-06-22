@@ -41,6 +41,16 @@ medmodel_intrinsics = np.array(
    [   0. ,  eon_focal_length / medmodel_zoom,  MEDMODEL_CY],
    [   0. ,                            0. ,   1.]])
 
+medmodel_intrinsics_webcam = np.array(
+  [[ 645 / medmodel_zoom,    0. ,  0.5 * MEDMODEL_INPUT_SIZE[0]],
+   [   0. ,  647 / medmodel_zoom,  MEDMODEL_CY],
+   [   0. ,                            0. ,   1.]])
+
+ground_from_medmodel_frame=[
+    0.00000000e+00, 0.00000000e+00, 1.00000000e+00,
+    -1.09890110e-03, 0.00000000e+00, 2.81318681e-01,
+    -1.84808520e-20, 9.00738606e-04,-4.28751576e-02]
+
 
 # BIG model
 

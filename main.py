@@ -1,23 +1,29 @@
 import time
+import traceback
 from datetime import datetime
 
 import numpy as np
 
-from model.runnner import VisionModel
+from calibration.openpilot_calib import Calibration, Calibrator
+from model.openpilot_model import VisionModel
 import research.lane_change as lc
+
 import cv2
 
 # open up our test file we can set this to be a webcam or video
-cap = cv2.VideoCapture('test_video/fcamera2.mp4')
+cap = cv2.VideoCapture(0)
 
 # open up traffic output file for appending new data.
 out_traffic = open('traffic_output.txt', "a+")
 
-# Instantiate an instance of the OpenPilot vision model
-vision_model = VisionModel(using_wide=False, show_vis=True)
-
 # Set this to true when conducting field experiment. It will enable lane change algorithm and GPS
 field_experiment = False
+
+# Instantiate an instance of the OpenPilot vision model
+cam_calib_file = None
+
+cam_calib = Calibrator(calib_file=cam_calib_file)
+vision_model = VisionModel(using_wide=False, show_vis=True, use_model_speed= not field_experiment, cam_calib=cam_calib)
 
 # List of opencv images (numpy arrays) so we can save video when required.
 vis_frames = []
@@ -82,8 +88,11 @@ def setup_image_stream():
     Sets up video source streaming properties such as resolution and exposure
     :return: None
     """
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 854)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap.set(cv2.CAP_PROP_FPS, 20)
+    cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+    cap.set(cv2.CAP_PROP_FOCUS, 0)
 
 
 def get_frames():
@@ -97,8 +106,8 @@ def get_frames():
     if not (ret1 or ret2):
         raise Exception("Error reading from image source")
 
-    frame_1 = res_frame_2(frame_1)  # resize frames
-    frame_2 = res_frame_2(frame_2)
+    # frame_1 = res_frame(frame_1)  # resize frames
+    # frame_2 = res_frame(frame_2)
 
     cam_frames.append(frame_1)   # append to camera frames for saving video later
     cam_frames.append(frame_2)
@@ -127,6 +136,7 @@ def process_model(frame1, frame2):
     # Run lane change algo if doing field experiment
     if field_experiment:
         lc.lane_change_algo(b_dist=lead_d)
+        vision_model.vehicle_speed = lc.get_last_speed()
 
 
 def save_video():
@@ -136,12 +146,13 @@ def save_video():
     Videos/latest_video_raw_datetime.mp4 (Direct video from camera without any processing)
     :return: None
     """
+    date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
     if len(vis_frames) > 0:
 
         print('Saving video files before exit!')
-        w, h = 1164, 874
+        h, w, c = vis_frames[0].shape
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-        date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+
         writer = cv2.VideoWriter('Videos/latest_video_processed_' + date +'.mp4', fourcc, 20, (w, h))
 
         for frame in vis_frames:
@@ -150,8 +161,12 @@ def save_video():
         writer.release()
 
     if len(cam_frames) > 0:
+
+        h, w, c = cam_frames[0].shape
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
         writer = cv2.VideoWriter('Videos/latest_video_raw_' + date + '.mp4', fourcc, 20, (w, h))
+
+
 
         for frame in cam_frames:
             writer.write(frame)
@@ -172,5 +187,6 @@ if __name__ == "__main__":
             process_model(frame1, frame2)
     except BaseException as e:
         print('An exception occurred: {}'.format(e))
+        traceback.print_exc()
     finally:
         save_video()  # save videos at all times.

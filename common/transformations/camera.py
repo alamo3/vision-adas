@@ -23,6 +23,11 @@ eon_dcam_intrinsics = np.array([
   [  0,  860,  864//2],
   [  0,    0,     1]])
 
+webcam_intrinsics = np.array([
+  [645.,   0.,   W/2.],
+  [  0.,  648.,  H/2.],
+  [  0.,    0.,     1.]])
+
 # aka 'K_inv' aka view_frame_from_camera_frame
 eon_intrinsics_inv = np.linalg.inv(eon_intrinsics)
 
@@ -141,7 +146,8 @@ def get_camera_frame_from_calib_frame(camera_frame_from_road_frame):
 
 
 def pretransform_from_calib(calib):
-  roll, pitch, yaw, height = calib
+  roll, pitch, yaw = calib
+  height = 1.22
   view_frame_from_road_frame = get_view_frame_from_road_frame(roll, pitch, yaw, height)
   camera_frame_from_road_frame = np.dot(eon_intrinsics, view_frame_from_road_frame)
   camera_frame_from_calib_frame = get_camera_frame_from_calib_frame(camera_frame_from_road_frame)
