@@ -33,6 +33,7 @@ def lane_change_algo(b_dist):
 
 def get_last_speed():
     global last_speed
+    print(last_speed)
     return last_speed
 
 

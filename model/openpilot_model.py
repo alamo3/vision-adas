@@ -138,7 +138,8 @@ class VisionModel:
 
         if self.use_model_speed:
             self.vehicle_speed = pose_speed
-            self.cam_calib.update_car_speed(pose_speed)
+
+        self.cam_calib.update_car_speed(self.vehicle_speed)
 
         lead_d = math.sqrt(lead_x ** 2 + lead_y ** 2)
         lead_d = lead_d.__round__(2)

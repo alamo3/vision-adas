@@ -11,7 +11,7 @@ import research.lane_change as lc
 import cv2
 
 # open up our test file we can set this to be a webcam or video
-cap = cv2.VideoCapture('test_video/test_cali.mp4')
+cap = cv2.VideoCapture(0)
 
 # open up traffic output file for appending new data.
 out_traffic = open('traffic_output.txt', "a+")
@@ -20,7 +20,7 @@ out_traffic = open('traffic_output.txt', "a+")
 field_experiment = False
 
 # Instantiate an instance of the OpenPilot vision model
-cam_calib_file = 'parameter.json'
+cam_calib_file = None
 
 cam_calib = Calibrator(calib_file=cam_calib_file)
 vision_model = VisionModel(using_wide=False, show_vis=True, use_model_speed= not field_experiment, cam_calib=cam_calib)
@@ -106,11 +106,11 @@ def get_frames():
     if not (ret1 or ret2):
         raise Exception("Error reading from image source")
 
-    frame_1 = res_frame(frame_1)  # resize frames
-    frame_2 = res_frame(frame_2)
+    # frame_1 = res_frame(frame_1)  # resize frames
+    # frame_2 = res_frame(frame_2)
 
-    # cam_frames.append(frame_1)   # append to camera frames for saving video later
-    # cam_frames.append(frame_2)
+    cam_frames.append(frame_1)   # append to camera frames for saving video later
+    cam_frames.append(frame_2)
 
     return frame_1, frame_2
 
@@ -146,13 +146,13 @@ def save_video():
     Videos/latest_video_raw_datetime.mp4 (Direct video from camera without any processing)
     :return: None
     """
-
+    date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
     if len(vis_frames) > 0:
 
         print('Saving video files before exit!')
-        w, h = 1164, 874
+        h, w, c = vis_frames[0].shape
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-        date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
+
         writer = cv2.VideoWriter('Videos/latest_video_processed_' + date +'.mp4', fourcc, 20, (w, h))
 
         for frame in vis_frames:
@@ -161,8 +161,12 @@ def save_video():
         writer.release()
 
     if len(cam_frames) > 0:
+
+        h, w, c = cam_frames[0].shape
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
         writer = cv2.VideoWriter('Videos/latest_video_raw_' + date + '.mp4', fourcc, 20, (w, h))
+
+
 
         for frame in cam_frames:
             writer.write(frame)
