@@ -25,6 +25,28 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(str(rpi_client.last_message), 'b\'20\'')
 
+    def test_connection_publish(self):
+
+        rpi_client = RPIClient()
+
+        self.assertEqual(rpi_client.client_id, 'RPI-0')
+
+        rpi_client.connect()
+
+        rpi_client.send_message('car/vehspeed;20')
+
+
+    def test_connection_subscriber(self):
+        rpi_client = RPIClient()
+
+        self.assertEqual(rpi_client.client_id, 'RPI-0')
+
+        rpi_client.subscribe(topic='car/vehspeed')
+
+        time.sleep(30)
+
+        self.assertEqual(str(rpi_client.last_message), 'b\'20\'')
+
 
 if __name__ == '__main__':
     unittest.main()
