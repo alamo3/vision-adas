@@ -67,8 +67,8 @@ class VisionModel:
         cv2.imshow('calibrated', frame1)
 
         # Convert the frames into the YUV420 color space
-        frame1 = cv2.cvtColor(frame1, cv2.COLOR_RGB2YUV_I420)
-        frame2 = cv2.cvtColor(frame2, cv2.COLOR_RGB2YUV_I420)
+        frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2YUV_I420)
+        frame2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2YUV_I420)
 
         calib_rpy = self.cam_calib.get_calibration()['roll_pitch_yaw']
         pretransform = pretransform_from_calib(calib_rpy)
