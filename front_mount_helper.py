@@ -26,9 +26,9 @@ cam_id = 2
 if __name__ == "__main__":
   import cv2  # pylint: disable=import-error
 
-  trans_webcam_to_eon_front = np.dot(eon_dcam_intrinsics, np.linalg.inv(webcam_intrinsics))
+  trans_webcam_to_eon_front = np.dot(eon_dcam_intrinsics, np.linalg.inv(logitech_intrinsics))
 
-  cap = cv2.VideoCapture(0)
+  cap = cv2.VideoCapture(1)
   cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
   cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 

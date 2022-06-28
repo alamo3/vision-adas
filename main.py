@@ -12,7 +12,9 @@ import research.lane_change as lc
 import cv2
 
 # open up our test file we can set this to be a webcam or video
-cap = cv2.VideoCapture(0)
+
+
+cap = cv2.VideoCapture(1)
 
 # open up traffic output file for appending new data.
 out_traffic = open('traffic_output.txt', "a+")
@@ -181,7 +183,7 @@ def save_video():
 
 if __name__ == "__main__":
 
-    setup_image_stream()
+    #setup_image_stream()
 
     try:
         # Run the pipelines as long as we have data
