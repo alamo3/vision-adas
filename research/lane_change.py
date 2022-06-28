@@ -53,7 +53,7 @@ def lane_change_algo_lat_lon(b_dist, speed, lat, lon):
     global last_lon
 
     coor1 = (lat, lon)
-    coor0 = (43.261875833, -79.930346333)  # ---------------signal coordination, to be modified ---------------#
+    coor0 = (43.26131216666667, -79.930344166667)  # ---------------signal coordination, to be modified ---------------#
     s_dist = gd.distance(coor0, coor1).km * 1000
     s_vel = speed
 
