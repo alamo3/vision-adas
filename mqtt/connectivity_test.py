@@ -41,6 +41,8 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual(rpi_client.client_id, 'RPI-0')
 
+        rpi_client.connect()
+
         rpi_client.subscribe(topic='car/vehspeed')
 
         time.sleep(30)
