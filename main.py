@@ -14,15 +14,15 @@ import cv2
 # open up our test file we can set this to be a webcam or video
 
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 
 # open up traffic output file for appending new data.
 out_traffic = open('traffic_output.txt', "a+")
 
 # Set this to true when conducting field experiment. It will enable lane change algorithm and GPS
-field_experiment = False
+field_experiment = True
 
-save_video_final = True
+save_video_final = False
 
 # Instantiate an instance of the OpenPilot vision model
 cam_calib_file = 'calibration.json' if os.path.exists('calibration.json') else None
@@ -39,8 +39,13 @@ ts = np.array([[1.42070485, 0.0, -30.16740088],
                   [0.0, 1.42070485, 91.030837],
                   [0.0, 0.0, 1.0]])
 
+pos_lat = 0
+pos_lon = 0
+
 
 def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
+    global pos_lat
+    global pos_lon
     """
     Logs surrounding traffic info to traffic_output.txt.
     :param lead_x: Distance of lead horizontal offset from camera in image.
@@ -52,7 +57,13 @@ def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
     date_time = datetime.now()
 
     info = "Date: " + str(date_time) + ", Type: Lead Vehicle" + ", Distance x: " + str(lead_x) + ", Distance y: " + \
-           str(lead_y) + ", Distance_t: " + str(lead_d) + " m " + ", Vehicle Speed: " + str(veh_speed * 3.6) + "\n"
+           str(lead_y) + ", Distance_t: " + str(lead_d) + " m " + ", Vehicle Speed: " + str(veh_speed * 3.6)
+
+    if field_experiment:
+        info = info+', lat:' + str(pos_lat)
+        info = info + ', lon' + str(pos_lon)
+
+    info = info+'\n'
 
     out_traffic.write(info)
 
@@ -113,14 +124,16 @@ def get_frames():
 
     # frame_1 = res_frame(frame_1)  # resize frames
     # frame_2 = res_frame(frame_2)
-
-    cam_frames.append(frame_1)   # append to camera frames for saving video later
-    cam_frames.append(frame_2)
+    if save_video_final:
+        cam_frames.append(frame_1)   # append to camera frames for saving video later
+        cam_frames.append(frame_2)
 
     return frame_1, frame_2
 
 
 def process_model(frame1, frame2):
+    global pos_lat
+    global pos_lon
     """
     Runs input frames through the openpilot model and extracts outputs from it
     :param frame1: First frame (numpy array)
@@ -136,10 +149,13 @@ def process_model(frame1, frame2):
     log_traffic_info(lead_x, lead_y, lead_d, pose_speed)
 
     # Append frame with visualization to save video later
-    vis_frames.append(vis_image)
+    if save_video_final:
+        vis_frames.append(vis_image)
 
     # Run lane change algo if doing field experiment
     if field_experiment:
+        pos_lat = lc.get_last_lat()
+        pos_lon = lc.get_last_lon()
         lc.lane_change_algo(b_dist=lead_d)
         vision_model.vehicle_speed = lc.get_last_speed()
 
