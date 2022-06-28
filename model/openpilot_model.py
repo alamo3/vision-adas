@@ -8,9 +8,9 @@ import cv2
 import utils
 from utils import extract_preds, draw_path, Calibration, transform_img, reshape_yuv
 
-from common.transformations.camera import eon_intrinsics, webcam_intrinsics
+from common.transformations.camera import eon_intrinsics, webcam_intrinsics, logitech_intrinsics
 from common.transformations.camera import pretransform_from_calib
-from common.transformations.model import medmodel_intrinsics, medmodel_intrinsics_webcam
+from common.transformations.model import medmodel_intrinsics
 
 from calibration.openpilot_calib import Calibrator
 
@@ -78,9 +78,9 @@ class VisionModel:
 
         # Prep the frames for the model input format
         imgs_med_model = np.zeros((2, 384, 512), dtype=np.uint8)
-        imgs_med_model[0] = transform_img(frame1, from_intr=webcam_intrinsics, to_intr=medmodel_intrinsics_webcam, yuv=True,
+        imgs_med_model[0] = transform_img(frame1, from_intr=logitech_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
                                           output_size=(512, 256), augment_eulers=calib_rpy, pretransform=pretransform)
-        imgs_med_model[1] = transform_img(frame2, from_intr=webcam_intrinsics, to_intr=medmodel_intrinsics_webcam, yuv=True,
+        imgs_med_model[1] = transform_img(frame2, from_intr=logitech_intrinsics, to_intr=medmodel_intrinsics, yuv=True,
                                           output_size=(512, 256),
                                           augment_eulers=calib_rpy, pretransform=pretransform)
 

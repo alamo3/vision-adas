@@ -15,6 +15,12 @@ webcam_intrinsics = np.array([
   [  0.,  1465.01,  1080/2.],
   [  0.,    0.,     1.]])
 
+logitech_intrinsics = np.array([
+  [webcam_focal_length,   0.,   1280/2.],
+  [  0.,  webcam_focal_length,  720/2.],
+  [  0.,    0.,     1.]
+  ])
+
 cam_id = 2
 
 if __name__ == "__main__":

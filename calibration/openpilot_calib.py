@@ -112,7 +112,7 @@ class Calibrator:
             cal_params = {"calib_radians": list(self.rpy),
                           "valid_blocks": int(self.valid_blocks)}
 
-            with open('parameter.json', 'w', encoding='utf-8') as f:
+            with open('calibration.json', 'w', encoding='utf-8') as f:
                 print('Saving calibration!')
                 json.dump(cal_params, f, indent=4)
 

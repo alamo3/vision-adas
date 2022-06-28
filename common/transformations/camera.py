@@ -2,6 +2,8 @@ import numpy as np
 import common.transformations.orientation as orient
 import math
 
+from front_mount_helper import webcam_focal_length
+
 FULL_FRAME_SIZE = (1164, 874)
 W, H = FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1]
 eon_focal_length = FOCAL = 910.0
@@ -27,6 +29,12 @@ webcam_intrinsics = np.array([
   [645.,   0.,   W/2.],
   [  0.,  648.,  H/2.],
   [  0.,    0.,     1.]])
+
+logitech_intrinsics = np.array([
+  [webcam_focal_length,   0.,   1280/2.],
+  [  0.,  webcam_focal_length,  720/2.],
+  [  0.,    0.,     1.]
+  ])
 
 # aka 'K_inv' aka view_frame_from_camera_frame
 eon_intrinsics_inv = np.linalg.inv(eon_intrinsics)

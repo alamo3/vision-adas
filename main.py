@@ -1,3 +1,4 @@
+import os.path
 import time
 import traceback
 from datetime import datetime
@@ -19,8 +20,10 @@ out_traffic = open('traffic_output.txt', "a+")
 # Set this to true when conducting field experiment. It will enable lane change algorithm and GPS
 field_experiment = False
 
+save_video_final = True
+
 # Instantiate an instance of the OpenPilot vision model
-cam_calib_file = None
+cam_calib_file = 'calibration.json' if os.path.exists('calibration.json') else None
 
 cam_calib = Calibrator(calib_file=cam_calib_file)
 vision_model = VisionModel(using_wide=False, show_vis=True, use_model_speed= not field_experiment, cam_calib=cam_calib)
@@ -88,8 +91,8 @@ def setup_image_stream():
     Sets up video source streaming properties such as resolution and exposure
     :return: None
     """
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 854)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
     cap.set(cv2.CAP_PROP_FPS, 20)
     cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
     cap.set(cv2.CAP_PROP_FOCUS, 0)
@@ -189,4 +192,5 @@ if __name__ == "__main__":
         print('An exception occurred: {}'.format(e))
         traceback.print_exc()
     finally:
-        save_video()  # save videos at all times.
+        if save_video_final:
+            save_video()  # save videos at all times.
