@@ -84,6 +84,7 @@ class CameraSource(ImageSource):
 
     def flush_unsaved_video(self):
         self.video_writer_new.release()
+        self.video_writer_new = None
 
     def save_video_minute(self):
 
