@@ -83,7 +83,7 @@ medmodel_frame_from_road_frame = np.dot(medmodel_intrinsics,
 
 model_frame_from_bigmodel_frame = np.dot(model_intrinsics, np.linalg.inv(bigmodel_intrinsics))
 
-# 'camera from model camera'
+# 'image from model image'
 def get_model_height_transform(camera_frame_from_road_frame, height):
   camera_frame_from_road_ground = np.dot(camera_frame_from_road_frame, np.array([
       [1, 0, 0],

@@ -9,11 +9,11 @@ import cv2
 PATH_TO_CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'cache')
 FULL_FRAME_SIZE = (1164, 874)  # input frame to openpilot model
 W, H = FULL_FRAME_SIZE[0], FULL_FRAME_SIZE[1]
-eon_focal_length = FOCAL = 910.0  # focal length of eon devkit camera (LeECO Pro 3 smartphone camera)
+eon_focal_length = FOCAL = 910.0  # focal length of eon devkit image (LeECO Pro 3 smartphone image)
 
 # aka 'K' aka camera_frame_from_view_frame
 eon_intrinsics = np.array(
-    [  # intrinsics camera array. For more info: https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
+    [  # intrinsics image array. For more info: https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
         [FOCAL, 0., W / 2.],
         [0., FOCAL, H / 2.],
         [0., 0., 1.]])

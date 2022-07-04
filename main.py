@@ -1,26 +1,27 @@
 import os.path
-import time
 import traceback
 from datetime import datetime
 
 import numpy as np
 
-from calibration.openpilot_calib import Calibration, Calibrator
+from calibration.openpilot_calib import Calibrator
 from model.openpilot_model import VisionModel
 import research.lane_change as lc
 
 import cv2
 
+from image.camera_source import CameraSource
+
 # open up our test file we can set this to be a webcam or video
 
 
-cap = cv2.VideoCapture(0)
+cap = CameraSource(cam_id=0, save_video=True)
 
 # open up traffic output file for appending new data.
 out_traffic = open('traffic_output.txt', "a+")
 
 # Set this to true when conducting field experiment. It will enable lane change algorithm and GPS
-field_experiment = True
+field_experiment = False
 
 save_video_final = False
 
@@ -48,9 +49,9 @@ def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
     global pos_lon
     """
     Logs surrounding traffic info to traffic_output.txt.
-    :param lead_x: Distance of lead horizontal offset from camera in image.
-    :param lead_y: Distance of lead vertical offset from camera in image.
-    :param lead_d: Distance of lead from camera in metres
+    :param lead_x: Distance of lead horizontal offset from image in image.
+    :param lead_y: Distance of lead vertical offset from image in image.
+    :param lead_d: Distance of lead from image in metres
     :param veh_speed: Vehicle speed in m/s
     :return: None
     """
@@ -70,7 +71,7 @@ def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
 
 def res_frame_2(frame):
     """
-    Resizes frame to 1164 x 874 to match eon camera frame.
+    Resizes frame to 1164 x 874 to match eon image frame.
     :param frame: RGB image (numpy array)
     :return: resized image (numpy array)
     """
@@ -79,7 +80,7 @@ def res_frame_2(frame):
 
 def res_frame(frame):
     """
-    Resizes frame to 1164 x 874 to match eon camera frame. (Zooms into frame)
+    Resizes frame to 1164 x 874 to match eon image frame. (Zooms into frame)
     :param frame: RGB image (numpy array)
     :return: resized image (numpy array)
     """
@@ -104,11 +105,11 @@ def setup_image_stream():
     Sets up video source streaming properties such as resolution and exposure
     :return: None
     """
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-    cap.set(cv2.CAP_PROP_FPS, 20)
-    cap.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-    cap.set(cv2.CAP_PROP_FOCUS, 0)
+    cap.set_parameter(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set_parameter(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set_parameter(cv2.CAP_PROP_FPS, 20)
+    cap.set_parameter(cv2.CAP_PROP_AUTOFOCUS, 0)
+    cap.set_parameter(cv2.CAP_PROP_FOCUS, 0)
 
 
 def get_frames():
@@ -116,8 +117,9 @@ def get_frames():
     Returns appropriate frames for openpilot model input from defined image source.
     :return: Tuple of 2 frames (frame_1, frame_2) for input into openpilot model (numpy array)
     """
-    ret1, frame_1 = cap.read()
-    ret2, frame_2 = cap.read()
+
+    ret1, frame_1 = cap.get_frame()
+    ret2, frame_2 = cap.get_frame()
 
     if not (ret1 or ret2):
         raise Exception("Error reading from image source")
@@ -125,7 +127,7 @@ def get_frames():
     # frame_1 = res_frame(frame_1)  # resize frames
     # frame_2 = res_frame(frame_2)
     if save_video_final:
-        cam_frames.append(frame_1)   # append to camera frames for saving video later
+        cam_frames.append(frame_1)   # append to image frames for saving video later
         cam_frames.append(frame_2)
 
     return frame_1, frame_2
@@ -164,7 +166,7 @@ def save_video():
     """
     Saves two video files from current program execution session time stamped with date and time of saving.
     Videos/latest_video_processed_datetime.mp4 (Video with model outputs overlayed on top)
-    Videos/latest_video_raw_datetime.mp4 (Direct video from camera without any processing)
+    Videos/latest_video_raw_datetime.mp4 (Direct video from image without any processing)
     :return: None
     """
     date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
@@ -210,5 +212,5 @@ if __name__ == "__main__":
         print('An exception occurred: {}'.format(e))
         traceback.print_exc()
     finally:
-        if save_video_final:
-            save_video()  # save videos at all times.
+        cap.flush_unsaved_video()
+
