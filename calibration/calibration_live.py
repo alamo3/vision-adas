@@ -1,7 +1,7 @@
 """
 Code taken from : https://nikatsanka.github.io/camera-calibration-using-opencv-and-python.html
 
-Learn more about camera calibration: https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
+Learn more about image calibration: https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
 """
 
 
@@ -56,14 +56,14 @@ print("Number of images used for calibration: ", found)
 cv2.destroyAllWindows()
 
 # calibration
-print('Calculating camera matrix')
+print('Calculating image matrix')
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(obj_points, img_points, gray.shape[::-1], None, None)
 
 # transform the matrix and distortion coefficients to writable lists
 data = {'camera_matrix': np.asarray(mtx).tolist(),
         'dist_coeff': np.asarray(dist).tolist()}
 
-print('Saving camera matrix')
+print('Saving image matrix')
 # and save it to a file
 with open("calibration_matrix_live.yaml", "w") as f:
     yaml.dump(data, f)

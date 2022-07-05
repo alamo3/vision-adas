@@ -230,7 +230,7 @@ def transform_img(base_img,
 
 
 def yuv_crop(frame, output_size, center=None):
-  # output_size in camera coordinates so u,v
+  # output_size in image coordinates so u,v
   # center in array coordinates so row, column
   import cv2  # pylint: disable=import-error
   rgb = cv2.cvtColor(frame, cv2.COLOR_YUV2RGB_I420)

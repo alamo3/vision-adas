@@ -8,3 +8,4 @@ traffic_output.txt
 /calibration_images
 *.json
 parameter.txt
+traffic_output_bus.txt

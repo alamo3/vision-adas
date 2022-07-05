@@ -1,7 +1,7 @@
 """
 Code taken from : https://nikatsanka.github.io/camera-calibration-using-opencv-and-python.html
 
-Learn more about camera calibration: https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
+Learn more about image calibration: https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html
 """
 
 
