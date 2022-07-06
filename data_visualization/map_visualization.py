@@ -22,6 +22,7 @@ class DataMapVisualization(customtkinter.CTk):
 
         self.map_widget = tkintermapview.TkinterMapView(self.frame_disp, width=800, height=600, corner_radius=0)
         self.map_widget.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+        self.map_widget.set_address("Mississauga, Ontario")
 
 
 if __name__ == "__main__":

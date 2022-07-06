@@ -9,3 +9,5 @@ traffic_output.txt
 *.json
 parameter.txt
 traffic_output_bus.txt
+traffic_output_ego_car.txt
+data_visualization/parser_out.txt
