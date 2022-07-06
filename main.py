@@ -12,6 +12,7 @@ import cv2
 
 from image.camera_source import CameraSource
 from image.image_sink import ImageSink
+
 # open up our test file we can set this to be a webcam or video
 
 
@@ -24,16 +25,15 @@ out_traffic = open('traffic_output.txt', "a+")
 # Set this to true when conducting field experiment. It will enable lane change algorithm and GPS
 field_experiment = False
 
-
 # Instantiate an instance of the OpenPilot vision model
 cam_calib_file = 'calibration.json' if os.path.exists('calibration.json') else None
 
 cam_calib = Calibrator(calib_file=cam_calib_file)
-vision_model = VisionModel(using_wide=False, show_vis=True, use_model_speed= not field_experiment, cam_calib=cam_calib)
+vision_model = VisionModel(using_wide=False, show_vis=True, use_model_speed=not field_experiment, cam_calib=cam_calib)
 
 ts = np.array([[1.42070485, 0.0, -30.16740088],
-                  [0.0, 1.42070485, 91.030837],
-                  [0.0, 0.0, 1.0]])
+               [0.0, 1.42070485, 91.030837],
+               [0.0, 0.0, 1.0]])
 
 pos_lat = 0
 pos_lon = 0
@@ -56,10 +56,10 @@ def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
            str(lead_y) + ", Distance_t: " + str(lead_d) + " m " + ", Vehicle Speed: " + str(veh_speed * 3.6)
 
     if field_experiment:
-        info = info+', lat:' + str(pos_lat)
-        info = info + ', lon' + str(pos_lon)
+        info = info + ', lat:' + str(pos_lat)
+        info = info + ', lon: ' + str(pos_lon)
 
-    info = info+'\n'
+    info = info + '\n'
 
     out_traffic.write(info)
 
@@ -119,7 +119,6 @@ def get_frames():
     # frame_1 = res_frame(frame_1)  # resize frames
     # frame_2 = res_frame(frame_2)
 
-
     return frame_1, frame_2
 
 
@@ -157,7 +156,7 @@ def delete_invalid_files():
         filename = os.fsdecode(file)
 
         if filename.endswith('.mp4'):
-            fsize =  os.path.getsize(os.path.join('Videos', filename))
+            fsize = os.path.getsize(os.path.join('Videos', filename))
 
             if fsize < 1000:
                 try:
@@ -168,7 +167,7 @@ def delete_invalid_files():
 
 if __name__ == "__main__":
 
-    #setup_image_stream()
+    # setup_image_stream()
 
     try:
         # Run the pipelines as long as we have data

@@ -13,3 +13,6 @@ onnxruntime
 torch
 torchvision
 simpleaudio
+gps
+customtkinter
+tkintermapview
