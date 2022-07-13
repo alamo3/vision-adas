@@ -1,23 +1,77 @@
+from data_visualization.time_frame import ExperimentTimeFrame
+from data_visualization.time_frame import DataPoint
+
+file_path_ego_car = '../traffic_output_ego_car.txt'
+file_path_bus = '../traffic_output_bus.txt'
+
+
 class TrafficOutputParser:
 
-    def __init__(self, file_path):
-        self.file_path = file_path
-        self.data = self.read_file()
+    def __init__(self):
+        self.data = []
         self.parsed_data = []
+        self.time_frames = {}
+        self.parsing_ego_car = False
 
-    def read_file(self):
-        file = open(self.file_path, 'r')
-        return file.readlines()
+    def get_time_frame(self, time_str):
+
+        time_str = self.get_key_for_time(time_str)
+
+        if time_str in self.time_frames:
+            return self.time_frames[time_str]
+        else:
+            time_frame = ExperimentTimeFrame(time=time_str)
+            self.time_frames[time_str] = time_frame
+
+            return time_frame
+
+    def get_key_for_time(self, time_str):
+        return time_str.split('.')[0]
+
+
+    def read_file(self, file_path, ego_car):
+        file = open(file_path, 'r')
+        self.data = file.readlines()
+        self.parsing_ego_car = ego_car
 
     def parse(self):
+        self.parsed_data.clear()
+
         for entry in self.data:
 
             if entry.startswith('Lane'):
                 self.parsed_data.append(self.add_lane_change())
             else:
+                time, speed, lat, lon = self.parse_log(entry)
+
+                time_frame = self.get_time_frame(time)
+
+                if self.parsing_ego_car:
+                    time_frame.dp_car.append(DataPoint(time, float(speed), float(lat), float(lon)))
+                else:
+                    time_frame.dp_bus.append(DataPoint(time, float(speed), float(lat), float(lon)))
+
                 self.parsed_data.append(self.parse_log(entry))
 
         self.cleanup()
+
+        if self.parsing_ego_car:
+            self.mark_lane_changes()
+
+    def mark_lane_changes(self):
+
+        idx = 0
+        for entry in self.parsed_data:
+            if entry == 'lane_change':
+                if idx == 0:
+                    continue  # cannot get time data for this
+
+                time = self.parsed_data[idx - 1][0]
+                time_frame = self.get_time_frame(time)
+                time_frame.lane_change = True
+
+            idx = idx + 1
+
 
     def parse_log(self, log_line):
         entries = log_line.split(',')
@@ -57,10 +111,11 @@ class TrafficOutputParser:
                 break
 
 
-
-
 if __name__ == "__main__":
-    t_out = TrafficOutputParser('../traffic_output_ego_car.txt')
+    t_out = TrafficOutputParser()
+    t_out.read_file(file_path=file_path_ego_car, ego_car=True)
     t_out.parse()
-    with open(r'parser_out.txt', 'w') as fp:
-        fp.write("\n".join(str(item) for item in t_out.parsed_data))
+    t_out.read_file(file_path=file_path_bus, ego_car=False)
+    t_out.parse()
+    print('Test complete')
+
