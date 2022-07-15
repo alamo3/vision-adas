@@ -29,11 +29,13 @@ class MyTestCase(unittest.TestCase):
 
         rpi_client = RPIClient()
 
-        self.assertEqual(rpi_client.client_id, 'RPI-0')
-
         rpi_client.connect()
 
+        time.sleep(5)
+
         rpi_client.send_message('car/vehspeed;20')
+
+        time.sleep(5)
 
 
     def test_connection_subscriber(self):

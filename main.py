@@ -5,6 +5,7 @@ from datetime import datetime
 import numpy as np
 
 from calibration.openpilot_calib import Calibrator
+from gps.gps import GPSReceiver
 from model.openpilot_model import VisionModel
 import research.lane_change as lc
 
@@ -35,13 +36,10 @@ ts = np.array([[1.42070485, 0.0, -30.16740088],
                [0.0, 1.42070485, 91.030837],
                [0.0, 0.0, 1.0]])
 
-pos_lat = 0
-pos_lon = 0
+gps = None
 
 
-def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
-    global pos_lat
-    global pos_lon
+def log_traffic_info(lead_x, lead_y, lead_d, veh_speed, pos_lat, pos_lon):
     """
     Logs surrounding traffic info to traffic_output.txt.
     :param lead_x: Distance of lead horizontal offset from image in image.
@@ -122,31 +120,36 @@ def get_frames():
     return frame_1, frame_2
 
 
-def process_model(frame1, frame2):
-    global pos_lat
-    global pos_lon
+def process_model(frame_1, frame_2):
     """
     Runs input frames through the openpilot model and extracts outputs from it
-    :param frame1: First frame (numpy array)
-    :param frame2: Second frame (numpy array)
+    :param frame_1: First frame (numpy array)
+    :param frame_2: Second frame (numpy array)
     :return: None
     """
     global field_experiment
 
+    pos_lat = 0
+    pos_lon = 0
     # Run model
-    lead_x, lead_y, lead_d, pose_speed, vis_image = vision_model.run_model(frame1, frame2)
+    lead_x, lead_y, lead_d, pose_speed, vis_image = vision_model.run_model(frame_1, frame_2)
 
-    # Log relevant info
-    log_traffic_info(lead_x, lead_y, lead_d, pose_speed)
-
+    # send visualized frame to output sink
     output_sink.sink_frame(vis_image)
 
     # Run lane change algo if doing field experiment
     if field_experiment:
-        pos_lat = lc.get_last_lat()
-        pos_lon = lc.get_last_lon()
         lc.lane_change_algo(b_dist=lead_d)
-        vision_model.vehicle_speed = lc.get_last_speed()
+
+        gps_df = gps.get_data_frame()
+        pose_speed = gps_df['speed']
+        pos_lat = gps_df['lat']
+        pos_lon = gps_df['lon']
+
+        vision_model.vehicle_speed = pose_speed
+
+    # log relevant infp
+    log_traffic_info(lead_x, lead_y, lead_d, pose_speed, pos_lat, pos_lon)
 
 
 def delete_invalid_files():
@@ -168,6 +171,9 @@ def delete_invalid_files():
 if __name__ == "__main__":
 
     # setup_image_stream()
+
+    if field_experiment:
+        gps = GPSReceiver()
 
     try:
         # Run the pipelines as long as we have data

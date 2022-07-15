@@ -27,6 +27,12 @@ def find_com_port_gps():
 
 
 class GPSReceiver:
+
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(GPSReceiver, cls).__new__(cls)
+        return cls.instance
+
     """
     GPSReceiver continuously receives data from gps receiver in the background and parses
     it into usable values in the client program.
@@ -47,6 +53,8 @@ class GPSReceiver:
         self.gps_com = None
 
         atexit.register(self.terminate_gps)
+
+        self.connect()
 
     def terminate_gps(self):
         self.exit_thread = True
