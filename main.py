@@ -24,7 +24,7 @@ output_sink = ImageSink(fps=20, sink_name='Model Output')
 out_traffic = open('traffic_output.txt', "a+")
 
 # Set this to true when conducting field experiment. It will enable lane change algorithm and GPS
-field_experiment = False
+field_experiment = True
 
 # Instantiate an instance of the OpenPilot vision model
 cam_calib_file = 'calibration.json' if os.path.exists('calibration.json') else None

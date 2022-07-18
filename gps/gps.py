@@ -26,18 +26,23 @@ def find_com_port_gps():
     return None
 
 
-class GPSReceiver:
+class Singleton(type):
+    _instances = {}
 
-    def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(GPSReceiver, cls).__new__(cls)
-        return cls.instance
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class GPSReceiver(metaclass=Singleton):
 
     """
     GPSReceiver continuously receives data from gps receiver in the background and parses
     it into usable values in the client program.
     Currently parses: latitude, longitude (decimal degrees), speed (m/s), speed (knots).
     """
+
     def __init__(self):
         self.connected = False
 
