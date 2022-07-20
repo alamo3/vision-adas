@@ -5,6 +5,7 @@ from datetime import datetime
 import numpy as np
 
 from calibration.openpilot_calib import Calibrator
+from gps.gps import GPSReceiver
 from model.openpilot_model import VisionModel
 import research.lane_change as lc
 
@@ -12,6 +13,7 @@ import cv2
 
 from image.camera_source import CameraSource
 from image.image_sink import ImageSink
+
 # open up our test file we can set this to be a webcam or video
 
 
@@ -22,26 +24,22 @@ output_sink = ImageSink(fps=20, sink_name='Model Output')
 out_traffic = open('traffic_output.txt', "a+")
 
 # Set this to true when conducting field experiment. It will enable lane change algorithm and GPS
-field_experiment = False
-
+field_experiment = True
 
 # Instantiate an instance of the OpenPilot vision model
 cam_calib_file = 'calibration.json' if os.path.exists('calibration.json') else None
 
 cam_calib = Calibrator(calib_file=cam_calib_file)
-vision_model = VisionModel(using_wide=False, show_vis=True, use_model_speed= not field_experiment, cam_calib=cam_calib)
+vision_model = VisionModel(using_wide=False, show_vis=True, use_model_speed=not field_experiment, cam_calib=cam_calib)
 
 ts = np.array([[1.42070485, 0.0, -30.16740088],
-                  [0.0, 1.42070485, 91.030837],
-                  [0.0, 0.0, 1.0]])
+               [0.0, 1.42070485, 91.030837],
+               [0.0, 0.0, 1.0]])
 
-pos_lat = 0
-pos_lon = 0
+gps = None
 
 
-def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
-    global pos_lat
-    global pos_lon
+def log_traffic_info(lead_x, lead_y, lead_d, veh_speed, pos_lat, pos_lon):
     """
     Logs surrounding traffic info to traffic_output.txt.
     :param lead_x: Distance of lead horizontal offset from image in image.
@@ -56,10 +54,10 @@ def log_traffic_info(lead_x, lead_y, lead_d, veh_speed):
            str(lead_y) + ", Distance_t: " + str(lead_d) + " m " + ", Vehicle Speed: " + str(veh_speed * 3.6)
 
     if field_experiment:
-        info = info+', lat:' + str(pos_lat)
-        info = info + ', lon' + str(pos_lon)
+        info = info + ', lat:' + str(pos_lat)
+        info = info + ', lon: ' + str(pos_lon)
 
-    info = info+'\n'
+    info = info + '\n'
 
     out_traffic.write(info)
 
@@ -119,35 +117,39 @@ def get_frames():
     # frame_1 = res_frame(frame_1)  # resize frames
     # frame_2 = res_frame(frame_2)
 
-
     return frame_1, frame_2
 
 
-def process_model(frame1, frame2):
-    global pos_lat
-    global pos_lon
+def process_model(frame_1, frame_2):
     """
     Runs input frames through the openpilot model and extracts outputs from it
-    :param frame1: First frame (numpy array)
-    :param frame2: Second frame (numpy array)
+    :param frame_1: First frame (numpy array)
+    :param frame_2: Second frame (numpy array)
     :return: None
     """
     global field_experiment
 
+    pos_lat = 0
+    pos_lon = 0
     # Run model
-    lead_x, lead_y, lead_d, pose_speed, vis_image = vision_model.run_model(frame1, frame2)
+    lead_x, lead_y, lead_d, pose_speed, vis_image = vision_model.run_model(frame_1, frame_2)
 
-    # Log relevant info
-    log_traffic_info(lead_x, lead_y, lead_d, pose_speed)
-
+    # send visualized frame to output sink
     output_sink.sink_frame(vis_image)
 
     # Run lane change algo if doing field experiment
     if field_experiment:
-        pos_lat = lc.get_last_lat()
-        pos_lon = lc.get_last_lon()
         lc.lane_change_algo(b_dist=lead_d)
-        vision_model.vehicle_speed = lc.get_last_speed()
+
+        gps_df = gps.get_data_frame()
+        pose_speed = gps_df['speed']
+        pos_lat = gps_df['lat']
+        pos_lon = gps_df['lon']
+
+        vision_model.vehicle_speed = pose_speed
+
+    # log relevant infp
+    log_traffic_info(lead_x, lead_y, lead_d, pose_speed, pos_lat, pos_lon)
 
 
 def delete_invalid_files():
@@ -157,7 +159,7 @@ def delete_invalid_files():
         filename = os.fsdecode(file)
 
         if filename.endswith('.mp4'):
-            fsize =  os.path.getsize(os.path.join('Videos', filename))
+            fsize = os.path.getsize(os.path.join('Videos', filename))
 
             if fsize < 1000:
                 try:
@@ -168,7 +170,10 @@ def delete_invalid_files():
 
 if __name__ == "__main__":
 
-    #setup_image_stream()
+    # setup_image_stream()
+
+    if field_experiment:
+        gps = GPSReceiver()
 
     try:
         # Run the pipelines as long as we have data
