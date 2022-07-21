@@ -29,7 +29,7 @@ class MQTTClient(Client):
 
         self.logger = logging.getLogger(__name__)
 
-        self.client = paho.Client(client_id=self.client_id, userdata=None, protocol=paho.MQTTv5)
+        self.client = paho.Client(client_id='rpi-56', userdata=None, protocol=paho.MQTTv5)
 
     def on_connect(self, client, userdata, flags, rc, properties=None):
         print("CONNACK received with code %s." % rc)
