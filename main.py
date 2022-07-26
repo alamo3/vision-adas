@@ -13,6 +13,7 @@ import cv2
 
 from image.camera_source import CameraSource
 from image.image_sink import ImageSink
+from mqtt.connection import Connection
 
 # open up our test file we can set this to be a webcam or video
 
@@ -24,7 +25,9 @@ output_sink = ImageSink(fps=20, sink_name='Model Output')
 out_traffic = open('traffic_output.txt', "a+")
 
 # Set this to true when conducting field experiment. It will enable lane change algorithm and GPS
-field_experiment = True
+field_experiment = False
+
+communication = False
 
 # Instantiate an instance of the OpenPilot vision model
 cam_calib_file = 'calibration.json' if os.path.exists('calibration.json') else None
@@ -166,6 +169,26 @@ def delete_invalid_files():
                     os.remove(os.path.join('Videos', filename))
                 except PermissionError as pe:
                     print('Could not remove file ', filename, ' due to permission error')
+
+
+def subscribe():
+    global subscribe
+    subscribe = False
+    if communication:
+        gps = GPSReceiver()
+        message = gps.get_data_frame()
+        rpi = Connection(message)
+        rpi.subscribe()
+        subscribe = True
+
+
+def publish():
+    global subscribe
+    if communication and subscribe:
+        gps = GPSReceiver()
+        message = gps.get_data_frame()
+        rpi = Connection(message)
+        rpi.publish()
 
 
 if __name__ == "__main__":

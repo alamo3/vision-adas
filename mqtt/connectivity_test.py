@@ -2,6 +2,7 @@ import time
 import unittest
 
 from rpi_client import RPIClient
+from gps.gps import GPSReceiver
 
 # Unit test for MQTT Communication test
 class MyTestCase(unittest.TestCase):
@@ -29,19 +30,20 @@ class MyTestCase(unittest.TestCase):
 
         rpi_client = RPIClient()
 
+        self.assertEqual(rpi_client.client_id, 'RPI-0')
+
         rpi_client.connect()
 
         time.sleep(5)
 
-        rpi_client.send_message('car/vehspeed;20')
+        gps = GPSReceiver()
+        rpi_client.send_message('car/vehspeed;'+gps.get_data_frame())
 
         time.sleep(5)
 
 
     def test_connection_subscriber(self):
         rpi_client = RPIClient()
-
-        self.assertEqual(rpi_client.client_id, 'RPI-0')
 
         rpi_client.connect()
 
