@@ -1,4 +1,5 @@
 from base_client import Client
+from mqtt.topics import Topic
 
 import paho.mqtt.client as paho
 from paho import mqtt
@@ -45,7 +46,8 @@ class MQTTClient(Client):
 
     # print message, useful for checking if it was successful
     def on_message(self, client, userdata, msg):
-        self.receive_message(str(msg.topic)+";"+str(msg.payload))
+        message_dict = {'topic' : str(msg.topic), 'message' : str(msg.payload)}
+        self.receive_message(message_dict)
         print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
 
     def connect(self):
@@ -68,13 +70,12 @@ class MQTTClient(Client):
     def subscribe(self, topic, qos=1):
         self.client.subscribe(topic, qos=qos)
 
-    def send_message(self, message,qos=1):
-        msg = message.split(';')
-        self.client.publish(msg[0], msg[1], qos=qos)
+    def send_message(self, message, qos=1):
+        self.client.publish(message['topic'], message['message'], qos=qos)
 
     def receive_message(self, message):
         super().receive_message(message)
-        self.last_message = message.split(';')[1]
+        self.last_message = message['message']
 
 
 
