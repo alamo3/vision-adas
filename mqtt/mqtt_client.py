@@ -1,4 +1,6 @@
 from base_client import Client
+from mqtt.topics import *
+from mqtt.message import MQTTMessage
 
 import paho.mqtt.client as paho
 from paho import mqtt
@@ -16,6 +18,8 @@ SERVER_PORT = 8883
 
 WEBSOCKET_PORT = 8884
 
+DEBUG = True
+
 
 class MQTTClient(Client):
     """
@@ -29,23 +33,32 @@ class MQTTClient(Client):
 
         self.logger = logging.getLogger(__name__)
 
-        self.client = paho.Client(client_id='rpi-6969', userdata=None, protocol=paho.MQTTv5)
+        self.client = paho.Client(client_id=client_id, userdata=None, protocol=paho.MQTTv5)
+        self.last_message = ''
+        self.last_publish_successful = False
 
     def on_connect(self, client, userdata, flags, rc, properties=None):
-        print("CONNACK received with code %s." % rc)
+        if DEBUG:
+            print(self.client_id, "CONNACK received with code %s." % rc)
 
     # with this callback you can see if your publish was successful
     def on_publish(self, client, userdata, mid, properties=None):
-        print("mid: " + str(mid))
+        if DEBUG:
+            print(self.client_id, 'Successfully published message')
+            self.last_publish_successful = True
 
     # print which topic was subscribed to
     def on_subscribe(self, client, userdata, mid, granted_qos, properties=None):
-        print("Subscribed: " + str(mid) + " " + str(granted_qos))
+        if DEBUG:
+            print(self.client_id, "Subscribed: " + str(mid) + " " + str(granted_qos))
 
     # print message, useful for checking if it was successful
     def on_message(self, client, userdata, msg):
-        self.receive_message(str(msg.topic)+";"+str(msg.payload))
-        print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+        message = MQTTMessage(topic=convert_string_topic(str(msg.topic)), message=str(msg.payload)[2:-1])
+        self.receive_message(message)
+
+        if DEBUG:
+            print(self.client_id, msg.topic + " " + str(msg.payload))
 
     def connect(self):
 
@@ -64,18 +77,11 @@ class MQTTClient(Client):
         self.client.on_message = self.on_message
         self.client.on_publish = self.on_publish
 
-    def subscribe(self, topic, qos=1):
-        self.client.subscribe(topic, qos=qos)
+    def subscribe(self, topic: Topic, qos=1):
+        self.client.subscribe(convert_topic_string(topic), qos=qos)
 
-    def send_message(self, message,qos=1):
-        msg = message.split(';')
-        self.client.publish(msg[0], msg[1], qos=qos)
+    def send_message(self, message: MQTTMessage, qos=1):
+        self.client.publish(message.get_topic_str(), message.get_message(), qos=qos)
 
-    def receive_message(self, message):
-        super().receive_message(message)
-
-
-
-
-
-
+    def receive_message(self, message: MQTTMessage):
+        self.last_message = message.get_message()
