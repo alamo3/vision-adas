@@ -18,6 +18,8 @@ SERVER_PORT = 8883
 
 WEBSOCKET_PORT = 8884
 
+DEBUG = True
+
 
 class MQTTClient(Client):
     """
@@ -35,21 +37,26 @@ class MQTTClient(Client):
         self.last_message = ''
 
     def on_connect(self, client, userdata, flags, rc, properties=None):
-        print("CONNACK received with code %s." % rc)
+        if DEBUG:
+            print(self.client_id, "CONNACK received with code %s." % rc)
 
     # with this callback you can see if your publish was successful
     def on_publish(self, client, userdata, mid, properties=None):
-        print('Successfully published message')
+        if DEBUG:
+            print(self.client_id, 'Successfully published message')
 
     # print which topic was subscribed to
     def on_subscribe(self, client, userdata, mid, granted_qos, properties=None):
-        print("Subscribed: " + str(mid) + " " + str(granted_qos))
+        if DEBUG:
+            print(self.client_id, "Subscribed: " + str(mid) + " " + str(granted_qos))
 
     # print message, useful for checking if it was successful
     def on_message(self, client, userdata, msg):
         message = MQTTMessage(topic=convert_string_topic(str(msg.topic)), message=str(msg.payload)[2:-1])
         self.receive_message(message)
-        print(msg.topic + " " + str(msg.payload))
+
+        if DEBUG:
+            print(self.client_id, msg.topic + " " + str(msg.payload))
 
     def connect(self):
 
@@ -76,9 +83,3 @@ class MQTTClient(Client):
 
     def receive_message(self, message: MQTTMessage):
         self.last_message = message.get_message()
-
-
-
-
-
-

@@ -57,6 +57,8 @@ class MyTestCase(unittest.TestCase):
             self.assertEqual('abc123', sub.last_message)
             print(sub.client_id, ' OK')
 
+        print('All OK')
+
 
 if __name__ == '__main__':
     unittest.main()
