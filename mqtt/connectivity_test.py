@@ -1,57 +1,61 @@
 import time
 import unittest
 
-from rpi_client import RPIClient
+from mqtt.topics import Topic
+from mqtt.message import MQTTMessage
+from mqtt_client import MQTTClient
 from gps.gps import GPSReceiver
+
 
 # Unit test for MQTT Communication test
 class MyTestCase(unittest.TestCase):
     def test_connection(self):
-        rpi_client = RPIClient()
+        client_1 = MQTTClient(client_id='VEHICLE-1')
 
-        rpi_client2 = RPIClient()
+        client_2 = MQTTClient(client_id='VEHICLE-2')
 
-        self.assertEqual(rpi_client.client_id, 'RPI-0')
-        self.assertEqual(rpi_client2.client_id, 'RPI-1')
+        client_1.connect()
 
-        rpi_client.connect()
+        client_2.connect()
 
-        rpi_client2.connect()
+        client_1.subscribe(topic=Topic.LEAD_DET)
 
-        rpi_client.subscribe(topic='car/vehspeed')
-
-        rpi_client2.send_message('car/vehspeed;20')
+        client_2.send_message(MQTTMessage(topic=Topic.LEAD_DET, message='Lead,2.3'))
 
         time.sleep(3)
 
-        self.assertEqual(str(rpi_client.last_message), 'b\'20\'')
+        self.assertEqual('Lead,2.3', client_1.last_message)
 
-    def test_connection_publish(self):
+    def test_connection_publish_1(self):
 
-        rpi_client = RPIClient()
+        publish_vehicle = MQTTClient(client_id='VEHICLE-1')
 
-        self.assertEqual(rpi_client.client_id, 'RPI-0')
+        publish_vehicle.connect()
 
-        rpi_client.connect()
-
-        time.sleep(5)
-
-        gps = GPSReceiver()
-        rpi_client.send_message('car/vehspeed;'+gps.get_data_frame())
+        publish_vehicle.send_message(MQTTMessage(topic=Topic.TEST, message='abc123'))
 
         time.sleep(5)
 
+    def test_connection_subscriber_1(self):
 
-    def test_connection_subscriber(self):
-        rpi_client = RPIClient()
+        NUM_SUBSCRIBERS = 5
 
-        rpi_client.connect()
+        subscribers = []
 
-        rpi_client.subscribe(topic='car/vehspeed')
+        for i in range(NUM_SUBSCRIBERS):
+            sub_vehicle = MQTTClient(client_id='VEHICLE-' + str(i + 2))
+            sub_vehicle.connect()
+            sub_vehicle.subscribe(topic=Topic.TEST)
+
+            subscribers.append(sub_vehicle)
+
+        print('Ready to receive')
 
         time.sleep(30)
 
-        self.assertEqual(str(rpi_client.last_message), 'b\'20\'')
+        for sub in subscribers:
+            self.assertEqual('abc123', sub.last_message)
+            print(sub.client_id, ' OK')
 
 
 if __name__ == '__main__':

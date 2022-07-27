@@ -13,11 +13,13 @@ import cv2
 
 from image.camera_source import CameraSource
 from image.image_sink import ImageSink
+
+
 from mqtt.mqtt_client import MQTTClient
+from mqtt.message import MQTTMessage
+from mqtt.topics import *
 
 # open up our test file we can set this to be a webcam or video
-from mqtt.topics import Topic
-
 cap = CameraSource(cam_id=0, save_video=True)
 output_sink = ImageSink(fps=20, sink_name='Model Output')
 
@@ -69,9 +71,10 @@ def log_traffic_info(lead_x, lead_y, lead_d, veh_speed, pos_lat, pos_lon):
     if communication:
         message_lead = 'Lead,'+str(lead_d)
         message_gps = ",".join([str(pos_lat), str(pos_lon), str(veh_speed)])
-        mqtt_client.send_message({'topic': Topic.TOPIC_STRING[Topic.LEAD_DET], 'message' : message_lead})
 
-        mqtt_client.send_message({'topic': Topic.TOPIC_STRING[Topic.VEHICLE_GPS], 'message': message_gps})
+        mqtt_client.send_message(MQTTMessage(topic=Topic.LEAD_DET, message=message_lead))
+
+        mqtt_client.send_message(MQTTMessage(topic=Topic.VEHICLE_GPS, message=message_gps))
 
 
 def res_frame_2(frame):

@@ -1,5 +1,6 @@
 from base_client import Client
-from mqtt.topics import Topic
+from mqtt.topics import *
+from mqtt.message import MQTTMessage
 
 import paho.mqtt.client as paho
 from paho import mqtt
@@ -38,7 +39,7 @@ class MQTTClient(Client):
 
     # with this callback you can see if your publish was successful
     def on_publish(self, client, userdata, mid, properties=None):
-        print("mid: " + str(mid))
+        print('Successfully published message')
 
     # print which topic was subscribed to
     def on_subscribe(self, client, userdata, mid, granted_qos, properties=None):
@@ -46,9 +47,9 @@ class MQTTClient(Client):
 
     # print message, useful for checking if it was successful
     def on_message(self, client, userdata, msg):
-        message_dict = {'topic' : str(msg.topic), 'message' : str(msg.payload)}
-        self.receive_message(message_dict)
-        print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+        message = MQTTMessage(topic=convert_string_topic(str(msg.topic)), message=str(msg.payload)[2:-1])
+        self.receive_message(message)
+        print(msg.topic + " " + str(msg.payload))
 
     def connect(self):
 
@@ -67,15 +68,14 @@ class MQTTClient(Client):
         self.client.on_message = self.on_message
         self.client.on_publish = self.on_publish
 
-    def subscribe(self, topic, qos=1):
-        self.client.subscribe(topic, qos=qos)
+    def subscribe(self, topic: Topic, qos=1):
+        self.client.subscribe(convert_topic_string(topic), qos=qos)
 
-    def send_message(self, message, qos=1):
-        self.client.publish(message['topic'], message['message'], qos=qos)
+    def send_message(self, message: MQTTMessage, qos=1):
+        self.client.publish(message.get_topic_str(), message.get_message(), qos=qos)
 
-    def receive_message(self, message):
-        super().receive_message(message)
-        self.last_message = message['message']
+    def receive_message(self, message: MQTTMessage):
+        self.last_message = message.get_message()
 
 
 
