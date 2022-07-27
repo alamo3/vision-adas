@@ -35,6 +35,7 @@ class MQTTClient(Client):
 
         self.client = paho.Client(client_id=client_id, userdata=None, protocol=paho.MQTTv5)
         self.last_message = ''
+        self.last_publish_successful = False
 
     def on_connect(self, client, userdata, flags, rc, properties=None):
         if DEBUG:
@@ -44,6 +45,7 @@ class MQTTClient(Client):
     def on_publish(self, client, userdata, mid, properties=None):
         if DEBUG:
             print(self.client_id, 'Successfully published message')
+            self.last_publish_successful = True
 
     # print which topic was subscribed to
     def on_subscribe(self, client, userdata, mid, granted_qos, properties=None):
