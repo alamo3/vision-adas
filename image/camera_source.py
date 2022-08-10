@@ -34,13 +34,15 @@ class CameraSource(ImageSource):
         ImageSource.__init__(self, source_name='usb_cam_' + str(cam_id), source_id=cam_id)
 
         self.cam_id = cam_id
-        self.video_cap = cv2.VideoCapture(cam_id)
+        self.video_cap = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
 
         self.video_writer_old = None
         self.video_writer_new = None
         self.date_init = None
         self.save_video = save_video
         self.fps = self.video_cap.get(cv2.CAP_PROP_FPS)
+        if self.fps == 0:
+            self.fps = 20
         self.frames_written = 0
 
         if save_video:

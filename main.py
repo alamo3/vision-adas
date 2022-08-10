@@ -20,7 +20,7 @@ from mqtt.message import MQTTMessage
 from mqtt.topics import *
 
 # open up our test file we can set this to be a webcam or video
-cap = CameraSource(cam_id=0, save_video=True)
+cap = CameraSource(cam_id=1, save_video=True)
 output_sink = ImageSink(fps=20, sink_name='Model Output')
 
 # open up traffic output file for appending new data.
@@ -185,7 +185,7 @@ def delete_invalid_files():
 
 if __name__ == "__main__":
 
-    # setup_image_stream()
+    setup_image_stream()
 
     if field_experiment:
         gps = GPSReceiver()
