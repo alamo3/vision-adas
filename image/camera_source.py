@@ -30,11 +30,17 @@ def get_cameras(max_id):
 
 class CameraSource(ImageSource):
 
-    def __init__(self, cam_id, save_video=False):
-        ImageSource.__init__(self, source_name='usb_cam_' + str(cam_id), source_id=cam_id)
+    def __init__(self, cam_id, save_video=False, d_show=False, is_video=False,
+                 flip_horizontal=False, flip_vertical=False):
+
+        ImageSource.__init__(self, source_name='src_' + str(cam_id), source_id=cam_id)
 
         self.cam_id = cam_id
-        self.video_cap = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
+
+        if d_show:
+            self.video_cap = cv2.VideoCapture(cam_id, cv2.CAP_DSHOW)
+        else:
+            self.video_cap = cv2.VideoCapture(cam_id)
 
         self.video_writer_old = None
         self.video_writer_new = None
@@ -45,6 +51,10 @@ class CameraSource(ImageSource):
             self.fps = 20
         self.frames_written = 0
 
+        self.flip_horizontal = flip_horizontal
+        self.flip_vertical = flip_vertical
+        self.is_video = is_video
+
         if save_video:
             self.new_video_writer()
 
@@ -54,14 +64,15 @@ class CameraSource(ImageSource):
 
         self.date_init = date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
 
-        video_name = 'Videos/video_out_' + str(self.cam_id)+'_' + date + '.mp4'
+        video_name = 'Videos/video_out_' + str(self.cam_id) + '_' + date + '.mp4'
         self.frames_written = 0
         self.video_writer_new = cv2.VideoWriter(video_name, fourcc, self.fps, (w, h))
 
     def set_parameter(self, param, value):
         self.check_video_feed()
 
-        self.video_cap.set(param, value)
+        if not self.is_video:  # Do not need to set parameters on videos
+            self.video_cap.set(param, value)
 
     def check_video_feed(self):
         if self.video_cap is None:
@@ -70,6 +81,12 @@ class CameraSource(ImageSource):
     def get_frame(self):
         self.check_video_feed()
         ret, img = self.video_cap.read()
+
+        if ret:
+            if self.flip_vertical:
+                img = cv2.flip(img, flipCode=0)
+            if self.flip_horizontal:
+                img = cv2.flip(img, flipCode=1)
 
         if self.save_video and ret and self.video_writer_new is not None:
             self.video_writer_new.write(img)
