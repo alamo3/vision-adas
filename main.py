@@ -20,14 +20,14 @@ from mqtt.message import MQTTMessage
 from mqtt.topics import *
 
 # open up our test file we can set this to be a webcam or video
-cap = CameraSource(cam_id=1, save_video=True)
+cap = CameraSource(cam_id=1, save_video=True, d_show=True)
 output_sink = ImageSink(fps=20, sink_name='Model Output')
 
 # open up traffic output file for appending new data.
 out_traffic = open('traffic_output.txt', "a+")
 
 # Set this to true when conducting field experiment. It will enable lane change algorithm and GPS
-field_experiment = False
+field_experiment = True
 
 communication = False
 mqtt_client = None

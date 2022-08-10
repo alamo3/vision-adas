@@ -73,6 +73,7 @@ class CameraSource(ImageSource):
 
         if not self.is_video:  # Do not need to set parameters on videos
             self.video_cap.set(param, value)
+            self.save_video_minute()
 
     def check_video_feed(self):
         if self.video_cap is None:
