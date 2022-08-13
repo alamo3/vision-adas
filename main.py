@@ -19,17 +19,13 @@ from mqtt.mqtt_client import MQTTClient
 from mqtt.message import MQTTMessage
 from mqtt.topics import *
 
+from flags import field_experiment
+from flags import communication_v2v
+
 # open up our test file we can set this to be a webcam or video
 cap = CameraSource(cam_id=1, save_video=True, d_show=True)
 output_sink = ImageSink(fps=20, sink_name='Model Output')
 
-# open up traffic output file for appending new data.
-out_traffic = open('traffic_output.txt', "a+")
-
-# Set this to true when conducting field experiment. It will enable lane change algorithm and GPS
-field_experiment = True
-
-communication = False
 mqtt_client = None
 vehicle_id = 'VEHICLE-1'
 
@@ -66,9 +62,10 @@ def log_traffic_info(lead_x, lead_y, lead_d, veh_speed, pos_lat, pos_lon):
 
     info = info + '\n'
 
-    out_traffic.write(info)
+    with open('traffic_output.txt', "a+") as out_traffic:
+        out_traffic.write(info)
 
-    if communication:
+    if communication_v2v:
         message_lead = 'Lead,'+str(lead_d)
         message_gps = ",".join([str(pos_lat), str(pos_lon), str(veh_speed)])
 
@@ -190,7 +187,7 @@ if __name__ == "__main__":
     if field_experiment:
         gps = GPSReceiver()
 
-    if communication:
+    if communication_v2v:
         mqtt_client = MQTTClient(client_id=vehicle_id)
 
     try:

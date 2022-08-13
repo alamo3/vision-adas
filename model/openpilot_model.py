@@ -64,7 +64,7 @@ class VisionModel:
     def run_model(self, frame1, frame2):
         orig_frame = frame1
 
-        cv2.imshow('calibrated', frame1)
+        cv2.imshow('original', frame1)
 
         # Convert the frames into the YUV420 color space
         frame1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2YUV_I420)
@@ -174,13 +174,9 @@ class VisionModel:
 
         end = time.time()
 
-        wait_time = 50 - int(((end - start) * 1000))
-        if wait_time < 1:
-            wait_time = 1
-
         # show it on the window
         if self.show_vis:
-            cv2.waitKey(wait_time)
+            cv2.waitKey(1)
 
         return lead_x, lead_y, lead_d, pose_speed, vis_image
 
@@ -194,14 +190,11 @@ class VisionModel:
 
         calib_rpy = np.array([0, calib_rpy[1], calib_rpy[2]])
 
-        #M = utils.get_transform_matrix(base_img=frame, augment_eulers=calib_rpy, output_size=(1168, 874))
 
-        #frame = cv2.warpPerspective(frame, M, dsize=(1168, 874))
+        h, w, c = frame.shape
+        plot_img_height, plot_img_width = h, w
 
-        # rpy_calib = [0, math.radians(-0.2), math.radians(2)]
-        plot_img_height, plot_img_width = 874, 1168
-
-        calibration_pred = Calibration(calib_rpy, plot_img_width=plot_img_width,
+        calibration_pred = Calibration(calib_rpy,intrinsic=logitech_intrinsics, plot_img_width=plot_img_width,
                                        plot_img_height=plot_img_height)
 
         point_lead = calibration_pred.car_space_to_bb(lead_d, lead_y, 1.22)

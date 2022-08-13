@@ -28,14 +28,12 @@ if __name__ == "__main__":
 
   trans_webcam_to_eon_front = np.dot(eon_dcam_intrinsics, np.linalg.inv(logitech_intrinsics))
 
-  cap = cv2.VideoCapture(1)
-  cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-  cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+  cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 
   while (True):
     ret, img = cap.read()
     if ret:
-      img = cv2.warpPerspective(img, trans_webcam_to_eon_front, (1152, 864), borderMode=cv2.BORDER_CONSTANT, borderValue=0)
+      #img = cv2.warpPerspective(img, trans_webcam_to_eon_front, (1152, 864), borderMode=cv2.BORDER_CONSTANT, borderValue=0)
      # img = img[:, -864//2:, :]
       cv2.imshow('preview', img)
-      cv2.waitKey(10)
+      cv2.waitKey(1)

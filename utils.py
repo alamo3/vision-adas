@@ -298,7 +298,6 @@ def transform_frames(frames):
 class Calibration:
     """ The Calibration class provides functionality to map points between model space (meters) to image space and vice
         versa (pixels).
-        TODO: Need to figure out live calibration.
     """
 
     def __init__(self, rpy, intrinsic=eon_intrinsics, plot_img_width=640, plot_img_height=480):
@@ -306,7 +305,7 @@ class Calibration:
         self.extrinsics_matrix = get_view_frame_from_calib_frame(rpy[0], rpy[1], rpy[2], 1.22)[:, :3]
         self.plot_img_width = plot_img_width
         self.plot_img_height = plot_img_height
-        self.zoom = W / plot_img_width
+        self.zoom = 1
         self.CALIB_BB_TO_FULL = np.asarray([
             [self.zoom, 0., 0.],
             [0., self.zoom, 0.],

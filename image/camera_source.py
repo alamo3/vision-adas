@@ -42,6 +42,9 @@ class CameraSource(ImageSource):
         else:
             self.video_cap = cv2.VideoCapture(cam_id)
 
+        self.video_cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+        self.video_cap.set(cv2.CAP_PROP_BRIGHTNESS, 140)
+
         self.video_writer_old = None
         self.video_writer_new = None
         self.date_init = None
@@ -59,7 +62,12 @@ class CameraSource(ImageSource):
             self.new_video_writer()
 
     def new_video_writer(self):
-        h, w, c = self.get_frame()[1].shape
+        ret, img = self.get_frame()
+
+        if not ret:
+            return None
+
+        h, w, c = img.shape
         fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
 
         self.date_init = date = datetime.now().strftime("%Y_%m_%d-%I_%M_%S_%p")
@@ -85,7 +93,8 @@ class CameraSource(ImageSource):
 
         if ret:
             if self.flip_vertical:
-                img = cv2.flip(img, flipCode=0)
+                img = cv2.rotate(img, cv2.ROTATE_180)
+
             if self.flip_horizontal:
                 img = cv2.flip(img, flipCode=1)
 

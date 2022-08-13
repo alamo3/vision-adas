@@ -1,8 +1,7 @@
 import threading
 from datetime import datetime
 import geopy.distance as gd
-from main import out_traffic
-from main import field_experiment
+from flags import field_experiment
 from gps.gps import GPSReceiver
 
 import simpleaudio as sa
@@ -64,7 +63,9 @@ def lane_change_algo_lat_lon(b_dist, speed, lat, lon):
             sound_thread.start()  # play lane changing instruction
 
             info = "Lane Changing Instruction is Generated" + "\n"
-            out_traffic.write(info)
+
+            with open('traffic_output.txt', "a+") as out_traffic:
+                out_traffic.write(info)
 
 
 def notify_driver():
