@@ -7,7 +7,6 @@ from gps.gps import GPSReceiver
 import simpleaudio as sa
 import os
 
-
 gtim = 96  # green time (with 120 sec cycle)
 tcyc = 120  # cycle length is 120 sec
 tdwl = 30  # bus dwelling time
@@ -21,19 +20,19 @@ if field_experiment:
     gps = GPSReceiver()
 
 
-def lane_change_algo(b_dist):
+def lane_change_algo(b_dist, lead_prob):
     gps_dict = gps.get_data_frame()
-    if gps_dict is not None:
-        lane_change_algo_lat_lon(b_dist, gps_dict['speed'], gps_dict['lat'], gps_dict['lon'])
+    if gps_dict is not None and lead_prob > 0.6:  # Need to find good threshold number
+        return lane_change_algo_lat_lon(b_dist, gps_dict['speed'], gps_dict['lat'], gps_dict['lon'])
+
+    return False
 
 
 def lane_change_algo_lat_lon(b_dist, speed, lat, lon):
-
     coor1 = (lat, lon)
     coor0 = (43.26131216666667, -79.930344166667)  # ---------------signal coordination, to be modified ---------------#
     s_dist = gd.distance(coor0, coor1).km * 1000
     s_vel = speed
-
 
     # sveh=15/3.6 # speed of individual vehicles
     # s_dist=s_dist+dbus
@@ -66,6 +65,10 @@ def lane_change_algo_lat_lon(b_dist, speed, lat, lon):
 
             with open('traffic_output.txt', "a+") as out_traffic:
                 out_traffic.write(info)
+
+            return True
+
+    return False
 
 
 def notify_driver():

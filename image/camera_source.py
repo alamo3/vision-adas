@@ -99,6 +99,7 @@ class CameraSource(ImageSource):
                 img = cv2.flip(img, flipCode=1)
 
         if self.save_video and ret and self.video_writer_new is not None:
+            self.time_stamp(frame=img)
             self.video_writer_new.write(img)
             self.frames_written = self.frames_written + 1
 
@@ -106,6 +107,13 @@ class CameraSource(ImageSource):
                 self.save_video_minute()
 
         return ret, img
+
+    def time_stamp(self, frame):
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+
+        cv2.putText(frame, current_time, (1050, 700), cv2.FONT_HERSHEY_PLAIN, 2,
+                    (0, 0, 255), 2)
 
     def is_valid(self):
         ret, img = self.get_frame()

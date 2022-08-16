@@ -14,7 +14,6 @@ import cv2
 from image.camera_source import CameraSource
 from image.image_sink import ImageSink
 
-
 from mqtt.mqtt_client import MQTTClient
 from mqtt.message import MQTTMessage
 from mqtt.topics import *
@@ -23,7 +22,7 @@ from flags import field_experiment
 from flags import communication_v2v
 
 # open up our test file we can set this to be a webcam or video
-cap = CameraSource(cam_id=1, save_video=True, d_show=True)
+cap = CameraSource(cam_id=0, save_video=True, d_show=True)
 output_sink = ImageSink(fps=20, sink_name='Model Output')
 
 mqtt_client = None
@@ -66,7 +65,7 @@ def log_traffic_info(lead_x, lead_y, lead_d, veh_speed, pos_lat, pos_lon):
         out_traffic.write(info)
 
     if communication_v2v:
-        message_lead = 'Lead,'+str(lead_d)
+        message_lead = 'Lead,' + str(lead_d)
         message_gps = ",".join([str(pos_lat), str(pos_lon), str(veh_speed)])
 
         mqtt_client.send_message(MQTTMessage(topic=Topic.LEAD_DET, message=message_lead))
@@ -139,19 +138,17 @@ def process_model(frame_1, frame_2):
     :param frame_2: Second frame (numpy array)
     :return: None
     """
-    global field_experiment
 
     pos_lat = 0
     pos_lon = 0
     # Run model
-    lead_x, lead_y, lead_d, pose_speed, vis_image = vision_model.run_model(frame_1, frame_2)
+    lead_x, lead_y, lead_d, pose_speed, lead_prob, vis_image = vision_model.run_model(frame_1, frame_2)
 
     # send visualized frame to output sink
-    output_sink.sink_frame(vis_image)
 
     # Run lane change algo if doing field experiment
     if field_experiment:
-        lc.lane_change_algo(b_dist=lead_d)
+        res = lc.lane_change_algo(b_dist=lead_d, lead_prob=lead_prob)
 
         gps_df = gps.get_data_frame()
         pose_speed = gps_df['speed']
@@ -160,8 +157,18 @@ def process_model(frame_1, frame_2):
 
         vision_model.vehicle_speed = pose_speed
 
-    # log relevant infp
+        if res:
+            visualize_lane_change(vis_image)
+
+    output_sink.sink_frame(vis_image)
+
+    # log relevant info
     log_traffic_info(lead_x, lead_y, lead_d, pose_speed, pos_lat, pos_lon)
+
+
+def visualize_lane_change(frame):
+    cv2.putText(frame, 'Lane Change Requested', (10, 700), cv2.FONT_HERSHEY_PLAIN, 2,
+                (0, 0, 255), 2)
 
 
 def delete_invalid_files():

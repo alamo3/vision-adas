@@ -74,7 +74,7 @@ class VisionModel:
         pretransform = pretransform_from_calib(calib_rpy)
         calib_rpy = np.array([0, calib_rpy[1], calib_rpy[2]])
 
-       # print(calib_rpy)
+        # print(calib_rpy)
 
         # Prep the frames for the model input format
         imgs_med_model = np.zeros((2, 384, 512), dtype=np.uint8)
@@ -163,7 +163,8 @@ class VisionModel:
         if new_rpy is not None:
             self.use_calibration = True
             calib_result = self.cam_calib.get_calibration()
-            # print('Calibration status: ', self.cam_calib.cal_status, 'Calibration: ', calib_result['cal_percentage'], [math.degrees(x) for x in new_rpy])
+            # print('Calibration status: ', self.cam_calib.cal_status, 'Calibration: ', calib_result[
+            # 'cal_percentage'], [math.degrees(x) for x in new_rpy])
 
         # Visualize the model output onto the image
 
@@ -178,7 +179,7 @@ class VisionModel:
         if self.show_vis:
             cv2.waitKey(1)
 
-        return lead_x, lead_y, lead_d, pose_speed, vis_image
+        return lead_x, lead_y, lead_d, pose_speed, lead_prob, vis_image
 
     # Some fancy math to show stuff on the image
     def visualize(self, lead_d, lead_x, lead_y, lead_prob, frame, lanelines, road_edges, best_path):
@@ -190,11 +191,10 @@ class VisionModel:
 
         calib_rpy = np.array([0, calib_rpy[1], calib_rpy[2]])
 
-
         h, w, c = frame.shape
         plot_img_height, plot_img_width = h, w
 
-        calibration_pred = Calibration(calib_rpy,intrinsic=logitech_intrinsics, plot_img_width=plot_img_width,
+        calibration_pred = Calibration(calib_rpy, intrinsic=logitech_intrinsics, plot_img_width=plot_img_width,
                                        plot_img_height=plot_img_height)
 
         point_lead = calibration_pred.car_space_to_bb(lead_d, lead_y, 1.22)
@@ -217,8 +217,10 @@ class VisionModel:
         cv2.putText(vis_image, 'Lead Probability = ' + str(round(lead_prob * 100, 1)) + ' %', (0, 70),
                     cv2.FONT_HERSHEY_PLAIN, 2,
                     (255, 0, 0), 4)
-        cv2.putText(vis_image, 'Calibration Percentage = ' + str(percent), (650,30), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 4)
-        cv2.putText(vis_image, 'Calibration Status = ' + str(status),(650,70), cv2.FONT_HERSHEY_PLAIN, 2,(0, 0, 255), 4 )
+        cv2.putText(vis_image, 'Calibration Percentage = ' + str(percent), (650, 30), cv2.FONT_HERSHEY_PLAIN, 2,
+                    (0, 0, 255), 4)
+        cv2.putText(vis_image, 'Calibration Status = ' + str(status), (650, 70), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255),
+                    4)
         cv2.imshow('frame', vis_image)
 
         return vis_image
