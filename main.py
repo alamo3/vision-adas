@@ -22,7 +22,7 @@ from flags import field_experiment
 from flags import communication_v2v
 
 # open up our test file we can set this to be a webcam or video
-cap = CameraSource(cam_id=0, save_video=True, d_show=True)
+cap = CameraSource(cam_id=1, save_video=True, d_show=True)
 output_sink = ImageSink(fps=20, sink_name='Model Output')
 
 mqtt_client = None
@@ -58,6 +58,8 @@ def log_traffic_info(lead_x, lead_y, lead_d, veh_speed, pos_lat, pos_lon):
     if field_experiment:
         info = info + ', lat:' + str(pos_lat)
         info = info + ', lon: ' + str(pos_lon)
+
+        print(veh_speed * 3.6)
 
     info = info + '\n'
 

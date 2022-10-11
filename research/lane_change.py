@@ -7,10 +7,10 @@ from gps.gps import GPSReceiver
 import simpleaudio as sa
 import os
 
-gtim = 96  # green time (with 120 sec cycle)
+gtim = 60  # green time (with 120 sec cycle)
 tcyc = 120  # cycle length is 120 sec
 tdwl = 30  # bus dwelling time
-dbus = 20  # distance between bus station and the signal
+dbus = 50  # distance between bus station and the signal
 
 lane_change_sound = sa.WaveObject.from_wave_file(os.path.join(os.path.dirname(__file__), r'LCAudio.wav'))
 
@@ -22,7 +22,7 @@ if field_experiment:
 
 def lane_change_algo(b_dist, lead_prob):
     gps_dict = gps.get_data_frame()
-    if gps_dict is not None and lead_prob > 0.6:  # Need to find good threshold number
+    if gps_dict is not None and lead_prob > 0.25:  # Need to find good threshold number
         return lane_change_algo_lat_lon(b_dist, gps_dict['speed'], gps_dict['lat'], gps_dict['lon'])
 
     return False

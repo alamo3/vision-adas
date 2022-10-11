@@ -42,9 +42,6 @@ class CameraSource(ImageSource):
         else:
             self.video_cap = cv2.VideoCapture(cam_id)
 
-        self.video_cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
-        self.video_cap.set(cv2.CAP_PROP_BRIGHTNESS, 140)
-
         self.video_writer_old = None
         self.video_writer_new = None
         self.date_init = None
